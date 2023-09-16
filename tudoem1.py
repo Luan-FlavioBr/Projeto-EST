@@ -370,9 +370,9 @@ radio_button_2 = ctk.CTkRadioButton(frame_carregar, text="Qualitativo",
 radio_button_2.place(relx=0.5, rely=0.67, anchor="center")
 
 
-radio_button_2 = ctk.CTkRadioButton(frame_carregar, text="Ambos",
+radio_button_3 = ctk.CTkRadioButton(frame_carregar, text="Ambos",
                                             variable= radio_var, value=3)
-radio_button_2.place(relx=0.65, rely=0.67, anchor="center")
+radio_button_3.place(relx=0.65, rely=0.67, anchor="center")
 
 
 entry_nome_bd = ctk.CTkEntry(frame_carregar, placeholder_text="Digite o nome do Banco de Dados", width=275, height=35)
@@ -447,6 +447,7 @@ button_inserir_rol_dados.place(relx=0.5, rely=0.85, anchor="center")
 # Fim frame digitar dados
 
 # Estilo de tema
+
 adicionarElementos(label_login, entry_login, label_senha, entry_senha, button_login, button_cadastrar, switchTheme, tipo=1)
 adicionarElementos(button_carregar_dados, button_digitar_dados, button_pareto, button_medidas, button_sair, switchTheme2, tipo=2)
 
@@ -455,8 +456,6 @@ if janela._get_appearance_mode() == "light":
     frame_main_login._set_appearance_mode("dark")
     frame_main_pricipal._set_appearance_mode("dark")
     frame_menu._set_appearance_mode("dark")
-    frame_carregar._set_appearance_mode("dark")
-    frame_digitar._set_appearance_mode("dark")
     for element in elementos_login:
         element._set_appearance_mode("dark")
     for element in elementos_principal:

@@ -31,8 +31,8 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
 
     for dado in lista:
         dado = str(dado)
-        if not dado.isalnum():
-            cursor.execute(f"INSERT INTO {nome_table} VALUES ({dado})")
+        if not any(char.isdigit() for char in dado):
+            cursor.execute(f"INSERT INTO {nome_table} VALUES ('{dado}')")
         else:
             print("DADO INVÁLIDO!")
             banco.rollback()

@@ -183,6 +183,8 @@ def pegar_item(event):
         button_update.place(rely=0.65, relx=0.65, anchor="center")
 
 
+def inserirDados_noBD():
+    inserir_rol_dados_qualitativos(tableData, "teste1")
 
 
 # Início Programa
@@ -380,7 +382,7 @@ radio_button_2 = ctk.CTkRadioButton(frame_digitar, text="Ambos",
 radio_button_2.place(relx=0.65, rely=0.75, anchor="center")
 
 button_inserir_rol_dados = ctk.CTkButton(frame_digitar, width=235, height=45, corner_radius=15,
-                                         text="Salvar no banco de dados")
+                                         text="Salvar no banco de dados", command=inserirDados_noBD)
 button_inserir_rol_dados.place(relx=0.5, rely=0.85, anchor="center")
 
 # Fim frame digitar dados

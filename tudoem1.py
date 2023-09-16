@@ -12,6 +12,8 @@ import os
 
 from DBController import *
 from cadastro import *
+from conversaoTxt import *
+from paretoExel import *
 
 
 # Função da tela de cadastro
@@ -103,12 +105,23 @@ def segmented_escolha(value):
 
 
 def escolherCaminho():
+
     origem = filedialog.askopenfilename(initialdir="/Desktop",
                                           title="Abrir exel",
-                                          filetypes = (("Arquivos txt","*.txt"),("Arquivos Exel","*.xlsx")))
+                                          filetypes = (("Arquivos Exel","*.xlsx"), ("Arquivos txt","*.txt")))
 
-    print(radio_var.get())
-    print(origem)
+    salvar_no_bd(origem, entry_nome_bd.get())
+
+
+def salvar_no_bd(origem, nome_do_table):
+    entry_nome_bd.delete(0, END)
+    tipo_arquivo = origem.split('/')[-1].split(".")[-1]
+    if tipo_arquivo == "txt":
+        lista_de_dados = pegar_dados_qualitativos_txt(origem)
+        inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+    elif tipo_arquivo == "xlsx":
+        lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
+        inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
 
 
 # Funções frame digitar dados
@@ -162,6 +175,9 @@ def pegar_item(event):
     
     if selecionado:
         item_selecionado = selecionado[0]
+        for item in selecionado:
+            index = int(item[1:]) - 1
+            print(index)
         valor_linha = table.item(item_selecionado, 'values')
         
         top_level = ctk.CTkToplevel(janela)
@@ -184,7 +200,10 @@ def pegar_item(event):
 
 
 def inserirDados_noBD():
-    inserir_rol_dados_qualitativos(tableData, "teste1")
+    global tableData
+    inserir_rol_dados_qualitativos(tableData, "teste2")
+    tableData = buscar_rol_dados("teste2")
+    carregar_tabela()
 
 
 # Início Programa
@@ -325,9 +344,18 @@ radio_button_2 = ctk.CTkRadioButton(frame_carregar, text="Ambos",
 radio_button_2.place(relx=0.65, rely=0.67, anchor="center")
 
 
+entry_nome_bd = ctk.CTkEntry(frame_carregar, placeholder_text="Digite o nome do Banco de Dados", width=275, height=35)
+entry_nome_bd.place(relx=0.5, rely=0.75, anchor="center")
+
+
 button_selecionar_arquivo = ctk.CTkButton(frame_carregar, text="Selecionar Arquivo", width=235, 
                                           height=45, corner_radius=15, command=escolherCaminho)
-button_selecionar_arquivo.place(relx=0.5, rely=0.75, anchor="center")
+button_selecionar_arquivo.place(relx=0.5, rely=0.85, anchor="center")
+
+
+# button_salvar_arquivo = ctk.CTkButton(frame_carregar, text="Salvar", width=235, 
+#                                           height=45, corner_radius=15, command=lambda: salvar_no_bd())
+# button_salvar_arquivo.place(relx=0.5, rely=0.95, anchor="center")
 
 # Fim frame carregar Dados
 # ----------------------------------------------------------------------------------------------------------------------------------------

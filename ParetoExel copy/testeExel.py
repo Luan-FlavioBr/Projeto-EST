@@ -16,7 +16,7 @@ def pegar_dados_qualitativos_xlsx(origem):
     while True:
         celula = f'A{numero_celula}'
         valor_celula = sheet[celula].value
-        if valor_celula == None:
+        if valor_celula == None or any(char.isdigit() for char in valor_celula):
             break
         else:
             lista.append(valor_celula)

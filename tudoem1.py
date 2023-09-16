@@ -122,6 +122,7 @@ def salvar_no_bd(origem, nome_do_table):
     elif tipo_arquivo == "xlsx":
         lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
         inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        operacoesExel(origem, origem, lista_de_dados)
 
 
 # Funções frame digitar dados

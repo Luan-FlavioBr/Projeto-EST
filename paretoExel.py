@@ -83,7 +83,7 @@ def operacoesExel(origemArquivo, localDoArquivo, lista):
                 #sheet[f'F{i}'].number_format = "0.00%"
             sheet[f"F{len(numero_de_ocorrencias)+2}"] = "-"
 
-    workbook.save(localDoArquivo+"/analise.xlsx")
+    workbook.save(localDoArquivo)
 
 def aplicacaoGraficoPareto():
     workbook = openpyxl.load_workbook('ParetoExelGrafico/analise.xlsx', data_only = True)

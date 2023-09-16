@@ -21,18 +21,49 @@ def cadastrar_clicado():
     tela_cadastrar_starter()
 
 
-# Função das telas: Login, Cadastro e Pricipal
+# Função da tela de login
+elementos_login = list()
+elementos_principal = list()
+def adicionarElementos(*args, tipo):
+    if tipo == 1:
+        for element in args:
+            elementos_login.append(element)
+    else:
+        for element in args:
+            elementos_principal.append(element)
 
-def mudarTema():
+def mudarTemaLogin():
     if switchTheme.get() == "on":
         janela._set_appearance_mode("dark")
-        frame_main_login._set_appearance_mode("dark")
+        frame_main_login._set_appearance_mode("dark") 
+        frame_main_pricipal._set_appearance_mode("dark")
+        frame_menu._set_appearance_mode("dark")
+        for element in elementos_login:
+            element._set_appearance_mode("dark") 
     else:
         janela._set_appearance_mode("light")
         frame_main_login._set_appearance_mode("light")
+        frame_main_pricipal._set_appearance_mode("light")
+        frame_menu._set_appearance_mode("light")
+        button_cadastrar.configure(fg_color="#343638")
+        for element in elementos_login:
+            element._set_appearance_mode("light")
 
 
-# Função da tela de login
+def mudarTemaPricipal():
+    if switchTheme2.get() == "on":
+        janela._set_appearance_mode("dark")
+        frame_main_pricipal._set_appearance_mode("dark")
+        frame_menu._set_appearance_mode("dark")
+        for element in elementos_principal:
+            element._set_appearance_mode("dark") 
+    else:
+        janela._set_appearance_mode("light")
+        frame_main_pricipal._set_appearance_mode("light")
+        frame_menu._set_appearance_mode("light")
+        for element in elementos_principal:
+            element._set_appearance_mode("light")
+
 def login_clicado():
     login = entry_login.get()
     dados_login = verificar_cadastro(login)
@@ -122,8 +153,6 @@ def salvar_no_bd(origem, nome_do_table):
     elif tipo_arquivo == "xlsx":
         lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
         inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
-        operacoesExel(origem, origem, lista_de_dados)
-
 
 # Funções frame digitar dados
 
@@ -225,21 +254,22 @@ x = (screen_width/2) - (400/2)
 y = (screen_height/2) - (300/2)
 
 janela.geometry('%dx%d+%d+%d' % (300, 400, x, y))
-janela._set_appearance_mode('dark')
 janela.resizable(width=False, height=False)
 
 font_negrito = ('arial bold', 18)
 
 # Definindo Frame principal do login
-frame_main_login = ctk.CTkFrame(janela, fg_color='#242424')
+frame_main_login = ctk.CTkFrame(janela)
 frame_main_login.pack(fill="both", expand=True)
 # Fim definição
 
-label_login = ctk.CTkLabel(frame_main_login, text="LOGIN", font= font_negrito).place(relx=0.25, y=100, anchor="center")
+label_login = ctk.CTkLabel(frame_main_login, text="LOGIN", font= font_negrito)
+label_login.place(relx=0.25, y=100, anchor="center")
 entry_login = ctk.CTkEntry(frame_main_login, width=210, placeholder_text="Digite seu login")
 entry_login.place(relx=0.5, y=130, anchor="center")
 
-label_senha = ctk.CTkLabel(frame_main_login, text="SENHA", font= font_negrito).place(relx=0.25, y=168, anchor="center")
+label_senha = ctk.CTkLabel(frame_main_login, text="SENHA", font= font_negrito)
+label_senha.place(relx=0.25, y=168, anchor="center")
 entry_senha = ctk.CTkEntry(frame_main_login, width=210, placeholder_text="Digite sua senha", show='*')
 entry_senha.place(relx=0.5, y=198, anchor="center")
 
@@ -252,19 +282,20 @@ button_cadastrar.place(relx=0.5, y=268, anchor="center")
 
 switch_var_principal = ctk.StringVar(value='on')
 
-switchTheme = ctk.CTkSwitch(frame_main_login, text="Tema", command=mudarTema, 
+switchTheme = ctk.CTkSwitch(frame_main_login, text="Tema", command=mudarTemaLogin, 
                             variable=switch_var_principal, onvalue='on', offvalue="off")
 switchTheme.place(relx=0.20, rely=0.90, anchor="center")
+
 # Fim Tela Login
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Tela Pricipal
-frame_main_pricipal = ctk.CTkFrame(janela, fg_color='#242424')
+frame_main_pricipal = ctk.CTkFrame(janela)
 
 # Posicionando Frames
-frame_carregar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="transparent")
+frame_carregar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600)
 frame_carregar.place(x=700, rely=-0.5, anchor="center")
 
-frame_digitar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="transparent")
+frame_digitar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600)
 frame_digitar.place(x=700, rely=-0.5, anchor="center")
 # Fim posicionamento
 
@@ -280,33 +311,32 @@ frame_menu.place(x=0, y=0)
 
 
 button_carregar_dados = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Carregar documentos", bg_color="#2B2B2B", font=font_normal, command=carregarDados)
+                                text="Carregar documentos", font=font_normal, command=carregarDados)
 button_carregar_dados.place(y=30, x=90, anchor="center")
 
 
 button_digitar_dados = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Digitar Dados", bg_color="#2B2B2B", font=font_normal, command=digitarDados)
+                                text="Digitar Dados", font=font_normal, command=digitarDados)
 button_digitar_dados.place(y=75, x=90, anchor="center")
 
 
 button_pareto = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Análise de Pareto", bg_color="#2B2B2B", font=font_normal)
+                                text="Análise de Pareto", font=font_normal)
 button_pareto.place(y=120, x=90, anchor="center")
 
 
 button_medidas = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Medidas e tabelas", bg_color="#2B2B2B", font=font_normal)
+                                text="Medidas e tabelas", font=font_normal)
 button_medidas.place(y=165, x=90, anchor="center")
 
 
-switch_var_principal = ctk.StringVar(value='Dark')
-switch_theme_principal = ctk.CTkSwitch(master=frame_menu, text="Tema", command=mudarTema, variable=switch_var_principal, 
-                            onvalue='Dark', offvalue="Light", bg_color="#2B2B2B", font=font_normal)
-switch_theme_principal.place(x=90, rely=0.85, anchor="center")
+switchTheme2 = ctk.CTkSwitch(master=frame_menu, text="Tema", command=mudarTemaPricipal, variable=switch_var_principal, 
+                            onvalue='on', offvalue="off", font=font_normal)
+switchTheme2.place(x=90, rely=0.85, anchor="center")
 
 
 button_sair = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Sair", bg_color="#2B2B2B", font=font_normal, command=sair)
+                                text="Sair", font=font_normal, command=sair)
 button_sair.place(rely=0.95, x=90, anchor="center")
 # Fim Tela Pricipal
 # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -415,5 +445,22 @@ button_inserir_rol_dados = ctk.CTkButton(frame_digitar, width=235, height=45, co
 button_inserir_rol_dados.place(relx=0.5, rely=0.85, anchor="center")
 
 # Fim frame digitar dados
+
+# Estilo de tema
+adicionarElementos(label_login, entry_login, label_senha, entry_senha, button_login, button_cadastrar, switchTheme, tipo=1)
+adicionarElementos(button_carregar_dados, button_digitar_dados, button_pareto, button_medidas, button_sair, switchTheme2, tipo=2)
+
+if janela._get_appearance_mode() == "light":
+    janela._set_appearance_mode("dark")
+    frame_main_login._set_appearance_mode("dark")
+    frame_main_pricipal._set_appearance_mode("dark")
+    frame_menu._set_appearance_mode("dark")
+    frame_carregar._set_appearance_mode("dark")
+    frame_digitar._set_appearance_mode("dark")
+    for element in elementos_login:
+        element._set_appearance_mode("dark")
+    for element in elementos_principal:
+        element._set_appearance_mode("dark")
+
 janela.mainloop()
  

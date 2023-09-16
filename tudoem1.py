@@ -114,7 +114,19 @@ def carregarDados():
 def digitarDados():
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=0.5, anchor="center")
-    
+    frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+
+
+def carregarDados():
+    frame_digitar.place(x=700, rely=-0.5, anchor="center")
+    frame_carregar.place(x=700, rely=0.5, anchor="center")
+    frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+
+
+def analisePareto():
+    frame_analise_pareto.place(x=700, rely=0.5, anchor="center")
+    frame_digitar.place(x=700, rely=-0.5, anchor="center")
+    frame_carregar.place(x=700, rely=-0.5, anchor="center")
 
 # Funções frame carregar dados
 def segmented_escolha(value):
@@ -205,9 +217,8 @@ def pegar_item(event):
     
     if selecionado:
         item_selecionado = selecionado[0]
-        for item in selecionado:
-            index = int(item[1:]) - 1
-            print(index)
+        # for item in selecionado:
+        #     index = int(item[1:]) - 1
         valor_linha = table.item(item_selecionado, 'values')
         
         top_level = ctk.CTkToplevel(janela)
@@ -235,6 +246,16 @@ def inserirDados_noBD():
     tableData = buscar_rol_dados("teste2")
     carregar_tabela()
 
+# Frame Análise Pareto
+def selecionar_table(event):
+    selecionado = table_baseDados.selection()
+     
+    if selecionado:
+        item_selecionado = selecionado[0]
+        # for item in selecionado:
+        #     index = int(item[1:]) - 1
+        valor_linha = table_baseDados.item(item_selecionado, 'values')
+        print(valor_linha[0])
 
 # Início Programa
 janela = ctk.CTk()
@@ -292,11 +313,14 @@ switchTheme.place(relx=0.20, rely=0.90, anchor="center")
 frame_main_pricipal = ctk.CTkFrame(janela)
 
 # Posicionando Frames
-frame_carregar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600)
+frame_carregar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_carregar.place(x=700, rely=-0.5, anchor="center")
 
-frame_digitar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600)
+frame_digitar = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_digitar.place(x=700, rely=-0.5, anchor="center")
+
+frame_analise_pareto = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
+frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
 # Fim posicionamento
 
 # Fonts
@@ -321,7 +345,7 @@ button_digitar_dados.place(y=75, x=90, anchor="center")
 
 
 button_pareto = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Análise de Pareto", font=font_normal)
+                                text="Análise de Pareto", font=font_normal, command=analisePareto)
 button_pareto.place(y=120, x=90, anchor="center")
 
 
@@ -338,6 +362,7 @@ switchTheme2.place(x=90, rely=0.85, anchor="center")
 button_sair = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
                                 text="Sair", font=font_normal, command=sair)
 button_sair.place(rely=0.95, x=90, anchor="center")
+
 # Fim Tela Pricipal
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Inicio Frame Carregar Dados
@@ -382,11 +407,6 @@ entry_nome_bd.place(relx=0.5, rely=0.75, anchor="center")
 button_selecionar_arquivo = ctk.CTkButton(frame_carregar, text="Selecionar Arquivo", width=235, 
                                           height=45, corner_radius=15, command=escolherCaminho)
 button_selecionar_arquivo.place(relx=0.5, rely=0.85, anchor="center")
-
-
-# button_salvar_arquivo = ctk.CTkButton(frame_carregar, text="Salvar", width=235, 
-#                                           height=45, corner_radius=15, command=lambda: salvar_no_bd())
-# button_salvar_arquivo.place(relx=0.5, rely=0.95, anchor="center")
 
 # Fim frame carregar Dados
 # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -445,7 +465,45 @@ button_inserir_rol_dados = ctk.CTkButton(frame_digitar, width=235, height=45, co
 button_inserir_rol_dados.place(relx=0.5, rely=0.85, anchor="center")
 
 # Fim frame digitar dados
+# ----------------------------------------------------------------------------------------------------------------------------------------
+# Inicio frame análise pareto
 
+label_analise_pareto = ctk.CTkLabel(frame_analise_pareto, text='Análise Pareto', font=('arial normal', 24))
+label_analise_pareto.place(relx=0.5, rely=0.05, anchor="center")
+
+tableColumnsBaseDados = ['Base de Dados']
+tableDataBaseDados = retornar_tables()
+
+table_baseDados = ttk.Treeview(master=frame_analise_pareto, columns=tableColumnsBaseDados, show="headings")
+for column in tableColumnsBaseDados:
+    table_baseDados.heading(column=column, text=column)
+    table_baseDados.column(column=column, width=350)
+
+
+table_baseDados.bind('<<TreeviewSelect>>', selecionar_table)
+table_baseDados.bind('<Motion>', prevent_resize)
+
+style = ttk.Style()
+style.theme_use('default')
+style.configure("Treeview", background="#1F6AA5", foreground="white", font=("arial", 14), borderwidth=0, relief = 'flat')
+style.configure("Treeview.Heading", background="#1F6AA5", foreground="white", font=("Calibri bold", 17), borderwidth=0, relief = 'flat')
+style.map("Treeview.Heading", background=[("pressed", "!focus", "#1F6AA5"), ("active", "#1F6AA5"), ("disabled", "white")])
+
+style.configure("Treeview", background="#343638", fieldbackground="#242424", foreground="white",
+                corner_radius=15, borderwidth=1)
+
+
+table_baseDados.place(rely=0.5, relx=0.5, anchor="center")
+
+for dados in tableDataBaseDados:
+    table_baseDados.insert(parent='', index="end", values=(dados.split('\t')))
+# Fim frame análise pareto
+# ----------------------------------------------------------------------------------------------------------------------------------------
+# Incio frame medidas e tabelas
+
+
+# # Fim frame medidas e tabelas
+# ----------------------------------------------------------------------------------------------------------------------------------------
 # Estilo de tema
 
 adicionarElementos(label_login, entry_login, label_senha, entry_senha, button_login, button_cadastrar, switchTheme, tipo=1)

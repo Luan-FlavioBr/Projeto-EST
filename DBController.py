@@ -1,5 +1,19 @@
 import sqlite3 as sql
 
+def retornar_tables():
+    banco = sql.connect("banco_cadastro.db")
+    cursor = banco.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+
+    tabelas = cursor.fetchall()
+
+    lista = [nome[0] for nome in tabelas]
+    banco.commit()
+    banco.close()
+    
+    return lista
+
 
 def cadastrar_usuario(login, senha):
     banco = sql.connect("banco_cadastro.db")

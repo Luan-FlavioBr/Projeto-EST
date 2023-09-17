@@ -246,6 +246,7 @@ def inserirDados_noBD():
 
 # Frame Análise Pareto
 def gerarAnalise(gerarAnalise):
+    from PIL import Image
     selecionado = table_baseDados.selection()
     if selecionado:
         item_selecionado = selecionado[0]
@@ -298,8 +299,13 @@ def gerarAnalise(gerarAnalise):
         label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto")
         label_titulo_grafico.pack(pady=50) 
 
-        localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
+        #localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise) ERRO DESGRTAÇADO
 
+        my_image = ctk.CTkImage(light_image=Image.open("ParetoExelGrafico\GraficoPareto.png"),
+                                  dark_image=Image.open("ParetoExelGrafico\GraficoPareto.png"),
+                                  size=(30, 30))
+        
+        image_label = ctk.CTkLabel(top_level, image=my_image, text="").pack()
         
         
 # Início Programa

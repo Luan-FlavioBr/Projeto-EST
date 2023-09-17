@@ -4,9 +4,7 @@ Boa sorte! >:)
 '''
 
 import tkinter as tk
-from tkinter import ttk
-from tkinter import END
-from tkinter import filedialog
+from tkinter import filedialog, PhotoImage, END, ttk
 import customtkinter as ctk
 import os
 
@@ -252,63 +250,64 @@ def gerarAnalise(gerarAnalise):
     if selecionado:
         item_selecionado = selecionado[0]
         valor_linha = table_baseDados.item(item_selecionado, 'values')
+        top_level = ctk.CTkToplevel(janela)
+ 
+        top_level.title("Análise de Pareto")
+        top_level.geometry('%dx%d+%d+%d' % (800, 400, x, y))
+        top_level.resizable(width=False, height=False)
+
+        origem = filedialog.askdirectory(initialdir="/Desktop",
+                                            title="Abrir exel")
         
-        if gerarAnalise:
-            top_level = ctk.CTkToplevel(janela)
+        localDoArquivo = operacoesExel(origem, origem, buscar_rol_dados(valor_linha[0]))
 
-            top_level.title("Alteração de dado")
-            top_level.geometry('%dx%d+%d+%d' % (500, 250, x, y))
+        scroll_frame_pareto = ctk.CTkScrollableFrame(top_level)
+        scroll_frame_pareto.pack(fill="both", expand=True)
 
-            origem = filedialog.askdirectory(initialdir="/Desktop",
-                                                title="Abrir exel")
-            
-            localDoArquivo = operacoesExel(origem, origem, buscar_rol_dados(valor_linha[0]))
+        label_titulo = ctk.CTkLabel(scroll_frame_pareto, text="Tabela de Análise de Pareto", width=200, height=35)
+        label_titulo.pack()
 
-            def banana():
-                tableData = lerarquivo(localDoArquivo)
-                for rowData in tableData:
-                    tablePareto.insert(parent='', index='end', values=rowData)
+        # Fazendo a tabela de análise de pareto
+        tableColumns = ['Tipo de falha','Nº de Ocorrências','Fr(%)', 'Fr Acum(%)']
 
+        tablePareto = ttk.Treeview(master=scroll_frame_pareto, columns=tableColumns, show="headings")
+        for column in tableColumns:
+            tablePareto.heading(column=column, text=column)
+            tablePareto.column(column=column, width=150)
 
-            tableColumns = ['Tipo de falha','Nº de Ocorrências','Fr(%)', 'Fr Acum(%)']
-            tableData = []
+        tablePareto.column("Nº de Ocorrências", anchor='e')
+        tablePareto.column("Fr(%)", anchor='e')
+        tablePareto.column("Fr Acum(%)", anchor='e')
 
+        stylePareto = ttk.Style()
+        stylePareto.theme_use('default')
+        stylePareto.configure("Treeview.Heading", background="#1F6AA5", foreground="white", font=("arial bold", 15), borderwidth=0, relief = 'flat')
+        stylePareto.map("Treeview.Heading", background=[("pressed", "!focus", "#1F6AA5"), ("active", "#1F6AA5"), ("disabled", "white")])
 
-            tablePareto = ttk.Treeview(master=top_level, columns=tableColumns, show="headings")
-            for column in tableColumns:
-                tablePareto.heading(column=column, text=column)
-                tablePareto.column(column=column, width=150)
+        stylePareto.configure("Treeview", background="#343638", fieldbackground="#242424", foreground="white",
+                        corner_radius=15, borderwidth=1)
+        
+        tableDataPareto = lerarquivo(localDoArquivo)
+        
+        for rowData in tableDataPareto:
+            tablePareto.insert(parent='', index='end', values=rowData)
+        
+        tablePareto.pack()
+        top_level.focus_get()
+        
+        label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto")
+        label_titulo_grafico.pack(pady=50) 
 
-            tablePareto.column("Nº de Ocorrências", anchor='e')
-            tablePareto.column("Fr(%)", anchor='e')
-            tablePareto.column("Fr Acum(%)", anchor='e')
+        localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
 
-            style = ttk.Style()
-            style.theme_use('default')
-            style.configure("Treeview", background="#917FB3", fieldbackground="#917FB3", foreground="white")
-
-            tablePareto.pack()
-            ctk.CTkButton(top_level, command=banana).pack()
-
-            label = ctk.CTkLabel(top_level, text="Gerou").pack()
-        else:
-            top_level = ctk.CTkToplevel(janela)
-
-            top_level.title("Alteração de dado")
-            top_level.geometry('%dx%d+%d+%d' % (500, 250, x, y))
-
+        
         
 # Início Programa
 janela = ctk.CTk()
 
-# dir_path = os.path.dirname(os.path.realpath(__file__))
-# janela.tk.call('set_theme','light')
-# janela.tk.call('source', os.path.join(dir_path, 'forest-light.tcl'))
-# janela.tk.call('source', os.path.join(dir_path, 'forest-dark.tcl'))
-# style.theme_use('forest-dark')
-
 # Tela Login!
 janela.title("Tela Login")
+janela.resizable(width=False, height=False)
 screen_width = janela.winfo_screenwidth()
 screen_height = janela.winfo_screenheight()
 
@@ -316,7 +315,6 @@ x = (screen_width/2) - (400/2)
 y = (screen_height/2) - (300/2)
 
 janela.geometry('%dx%d+%d+%d' % (300, 400, x, y))
-janela.resizable(width=False, height=False)
 
 font_negrito = ('arial bold', 18)
 

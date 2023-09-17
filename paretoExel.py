@@ -103,7 +103,7 @@ def arrumar_exel(localDoArquivo):
     excel_app.quit()
 
 
-def aplicacaoGraficoPareto(localDoArquivo):
+def aplicacaoGraficoPareto(localDoArquivo, gerarExel=False):
     localDaImagem = os.path.dirname(localDoArquivo)
     workbook = openpyxl.load_workbook(localDoArquivo, data_only = True)
     sheet = workbook.active
@@ -143,8 +143,6 @@ def aplicacaoGraficoPareto(localDoArquivo):
 
 
     tipo_de_falha, numeroOcorrencias, frequencia, frequeciaAcumulada, ultimaLinha = pegarExel()
-    print(len(tipo_de_falha))
-    print(len(frequencia))
 
     plt.rcParams.update({'font.size': 14})
     df = pd.DataFrame({'tipo defeito' : tipo_de_falha,
@@ -183,15 +181,17 @@ def aplicacaoGraficoPareto(localDoArquivo):
 
     plt.savefig(f'{localDaImagem}.png',format='png',dpi = 600, bbox_inches = 'tight')
 
-    # paretoGrafico = Image('ParetoExelGrafico/GraficoPareto.png')
-    # paretoGrafico.width = 600
-    # paretoGrafico.height = 350
-
-    # sheet.add_image(paretoGrafico, f"C{ultimaLinha + 3}")
-
-    # workbook.save('ParetoExelGrafico/analise.xlsx')
-
-    # subprocess.run(['start', '', 'ParetoExelGrafico/analise.xlsx'], shell=True)
+    if gerarExel:
+        paretoGrafico = Image('ParetoExelGrafico/GraficoPareto.png')
+        paretoGrafico.width = 600
+        paretoGrafico.height = 350
+        sheet.add_image(paretoGrafico, f"C{ultimaLinha + 3}")
+        workbook.save('ParetoExelGrafico/analise.xlsx')
+        subprocess.run(['start', '', 'ParetoExelGrafico/analise.xlsx'], shell=True)
+        return f'{localDaImagem}.png'
+    else:
+        os.remove(localDoArquivo)
+        return f'{localDaImagem}.png'
 
 
 def lerarquivo(localDoArquivo):

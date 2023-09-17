@@ -147,7 +147,7 @@ def segmented_escolha(value):
         label_frame_scroll_info.configure(text=texto, justify="left")
 
 
-def escolherCaminho():
+def escolherCaminhoArquivo():
 
     origem = filedialog.askopenfilename(initialdir="/Desktop",
                                           title="Abrir exel",
@@ -247,16 +247,57 @@ def inserirDados_noBD():
     carregar_tabela()
 
 # Frame Análise Pareto
-def selecionar_table(event):
+def gerarAnalise(gerarAnalise):
     selecionado = table_baseDados.selection()
-     
     if selecionado:
         item_selecionado = selecionado[0]
-        # for item in selecionado:
-        #     index = int(item[1:]) - 1
         valor_linha = table_baseDados.item(item_selecionado, 'values')
-        print(valor_linha[0])
+        
+        if gerarAnalise:
+            top_level = ctk.CTkToplevel(janela)
 
+            top_level.title("Alteração de dado")
+            top_level.geometry('%dx%d+%d+%d' % (500, 250, x, y))
+
+            origem = filedialog.askdirectory(initialdir="/Desktop",
+                                                title="Abrir exel")
+            
+            localDoArquivo = operacoesExel(origem, origem, buscar_rol_dados(valor_linha[0]))
+
+            def banana():
+                tableData = lerarquivo(localDoArquivo)
+                for rowData in tableData:
+                    tablePareto.insert(parent='', index='end', values=rowData)
+
+
+            tableColumns = ['Tipo de falha','Nº de Ocorrências','Fr(%)', 'Fr Acum(%)']
+            tableData = []
+
+
+            tablePareto = ttk.Treeview(master=top_level, columns=tableColumns, show="headings")
+            for column in tableColumns:
+                tablePareto.heading(column=column, text=column)
+                tablePareto.column(column=column, width=150)
+
+            tablePareto.column("Nº de Ocorrências", anchor='e')
+            tablePareto.column("Fr(%)", anchor='e')
+            tablePareto.column("Fr Acum(%)", anchor='e')
+
+            style = ttk.Style()
+            style.theme_use('default')
+            style.configure("Treeview", background="#917FB3", fieldbackground="#917FB3", foreground="white")
+
+            tablePareto.pack()
+            ctk.CTkButton(top_level, command=banana).pack()
+
+            label = ctk.CTkLabel(top_level, text="Gerou").pack()
+        else:
+            top_level = ctk.CTkToplevel(janela)
+
+            top_level.title("Alteração de dado")
+            top_level.geometry('%dx%d+%d+%d' % (500, 250, x, y))
+
+        
 # Início Programa
 janela = ctk.CTk()
 
@@ -405,7 +446,7 @@ entry_nome_bd.place(relx=0.5, rely=0.75, anchor="center")
 
 
 button_selecionar_arquivo = ctk.CTkButton(frame_carregar, text="Selecionar Arquivo", width=235, 
-                                          height=45, corner_radius=15, command=escolherCaminho)
+                                          height=45, corner_radius=15, command=escolherCaminhoArquivo)
 button_selecionar_arquivo.place(relx=0.5, rely=0.85, anchor="center")
 
 # Fim frame carregar Dados
@@ -477,10 +518,8 @@ tableDataBaseDados = retornar_tables()
 table_baseDados = ttk.Treeview(master=frame_analise_pareto, columns=tableColumnsBaseDados, show="headings")
 for column in tableColumnsBaseDados:
     table_baseDados.heading(column=column, text=column)
-    table_baseDados.column(column=column, width=350)
+    table_baseDados.column(column=column, width=550)
 
-
-table_baseDados.bind('<<TreeviewSelect>>', selecionar_table)
 table_baseDados.bind('<Motion>', prevent_resize)
 
 style = ttk.Style()
@@ -493,13 +532,25 @@ style.configure("Treeview", background="#343638", fieldbackground="#242424", for
                 corner_radius=15, borderwidth=1)
 
 
-table_baseDados.place(rely=0.5, relx=0.5, anchor="center")
+table_baseDados.place(rely=0.35, relx=0.5, anchor="center")
 
 for dados in tableDataBaseDados:
     table_baseDados.insert(parent='', index="end", values=(dados.split('\t')))
+
+button_gerar_analisepareto = ctk.CTkButton(frame_analise_pareto, text="Gerar análise de pareto", 
+                                           width=235, height=45, corner_radius=15, font=("arial", 15), 
+                                           command=lambda:gerarAnalise(checkbox_gerar_exel.get()))
+button_gerar_analisepareto.place(relx=0.5, rely=0.75, anchor="center")
+
+check_var = ctk.StringVar(value=True)
+checkbox_gerar_exel = ctk.CTkCheckBox(frame_analise_pareto, text="Gerar arquivo exel",
+                           variable=check_var, onvalue=True, offvalue=False)
+checkbox_gerar_exel.place(relx=0.5, rely=0.85, anchor="center")
+
 # Fim frame análise pareto
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Incio frame medidas e tabelas
+
 
 
 # # Fim frame medidas e tabelas

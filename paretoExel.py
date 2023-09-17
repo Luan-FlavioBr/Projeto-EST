@@ -1,9 +1,11 @@
+import os
 import openpyxl
 from openpyxl.styles import Font
 from openpyxl.drawing.image import Image
 import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
+import xlwings
 
 def pegar_dados_qualitativos_xlsx(origem):
     workbook = openpyxl.load_workbook(origem)
@@ -23,7 +25,8 @@ def pegar_dados_qualitativos_xlsx(origem):
     return lista
 
 def operacoesExel(origemArquivo, localDoArquivo, lista):
-    workbook = openpyxl.load_workbook(origemArquivo)
+    localDoArquivo = f"{origemArquivo}/baseCasos.xlsx"
+    workbook = openpyxl.Workbook()
     sheet = workbook.active
 
     # Formatando largura da coluna
@@ -84,9 +87,25 @@ def operacoesExel(origemArquivo, localDoArquivo, lista):
             sheet[f"F{len(numero_de_ocorrencias)+2}"] = "-"
 
     workbook.save(localDoArquivo)
+    arrumar_exel(localDoArquivo)
+    return localDoArquivo
+    
 
-def aplicacaoGraficoPareto():
-    workbook = openpyxl.load_workbook('ParetoExelGrafico/analise.xlsx', data_only = True)
+
+def arrumar_exel(localDoArquivo):
+    # Arrumar .xlsx para resguardar a sanidade mental do Luan!
+    data = openpyxl.load_workbook(localDoArquivo)
+    data.save(localDoArquivo)
+    excel_app = xlwings.App(visible=False)
+    excel_book = excel_app.books.open(localDoArquivo)
+    excel_book.save()
+    excel_book.close()
+    excel_app.quit()
+
+
+def aplicacaoGraficoPareto(localDoArquivo):
+    localDaImagem = os.path.dirname(localDoArquivo)
+    workbook = openpyxl.load_workbook(localDoArquivo, data_only = True)
     sheet = workbook.active
 
     def pegarExel():
@@ -162,21 +181,21 @@ def aplicacaoGraficoPareto():
         ax2.annotate(f'{y:.2f}%', xy=(x, y), xytext=(5, -25), textcoords='offset points',
                     ha='center', fontsize=12)
 
-    plt.savefig('ParetoExelGrafico/GraficoPareto.png',format='png',dpi = 600, bbox_inches = 'tight')
+    plt.savefig(f'{localDaImagem}.png',format='png',dpi = 600, bbox_inches = 'tight')
 
-    paretoGrafico = Image('ParetoExelGrafico/GraficoPareto.png')
-    paretoGrafico.width = 600
-    paretoGrafico.height = 350
+    # paretoGrafico = Image('ParetoExelGrafico/GraficoPareto.png')
+    # paretoGrafico.width = 600
+    # paretoGrafico.height = 350
 
-    sheet.add_image(paretoGrafico, f"C{ultimaLinha + 3}")
+    # sheet.add_image(paretoGrafico, f"C{ultimaLinha + 3}")
 
-    workbook.save('ParetoExelGrafico/analise.xlsx')
+    # workbook.save('ParetoExelGrafico/analise.xlsx')
 
-    subprocess.run(['start', '', 'ParetoExelGrafico/analise.xlsx'], shell=True)
+    # subprocess.run(['start', '', 'ParetoExelGrafico/analise.xlsx'], shell=True)
 
 
-def lerarquivo():
-    workbook = openpyxl.load_workbook('ParetoExelGrafico/analise.xlsx', data_only = True)
+def lerarquivo(localDoArquivo):
+    workbook = openpyxl.load_workbook(localDoArquivo, data_only = True)
     sheet = workbook.active
 
     tipoDefeito = list()

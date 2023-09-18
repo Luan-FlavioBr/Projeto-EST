@@ -146,24 +146,38 @@ def segmented_escolha(value):
         label_frame_scroll_info.configure(text=texto, justify="left")
 
 
-def escolherCaminhoArquivo():
+def tela_error(mensagem):
+    top_level_error = ctk.CTkToplevel(janela)
+    top_level_error.title("Error")
+    top_level_error.resizable(width=False, height=False)
+    top_level_error.geometry('%dx%d+%d+%d' % (500, 250, x, y))
 
+    label_error = ctk.CTkLabel(top_level_error, text=mensagem, font=("calibri bold", 16), wraplength=499, text_color="red")
+    label_error.place(relx=0.5, rely=0.5, anchor="center")
+
+    top_level_error.grab_set()
+
+def escolherCaminhoArquivo():
+    janela.focus_set()
     origem = filedialog.askopenfilename(initialdir="/Desktop",
                                           title="Abrir exel",
                                           filetypes = (("Arquivos Exel","*.xlsx"), ("Arquivos txt","*.txt")))
 
-    salvar_no_bd(origem, entry_nome_bd.get())
-
+    resultado = salvar_no_bd(origem, entry_nome_bd.get())
+    if resultado == None:
+        tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
+    elif resultado == 'Nome Table Error':
+        tela_error("O nome do conjunto de dados já existe!")
 
 def salvar_no_bd(origem, nome_do_table):
     entry_nome_bd.delete(0, END)
     tipo_arquivo = origem.split('/')[-1].split(".")[-1]
     if tipo_arquivo == "txt":
         lista_de_dados = pegar_dados_qualitativos_txt(origem)
-        inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
     elif tipo_arquivo == "xlsx":
         lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
-        inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
 
 # Funções frame digitar dados
 
@@ -306,6 +320,8 @@ def gerarAnalise(gerarAnalise):
         canvas = FigureCanvasTkAgg(fig, master=scroll_frame_pareto)
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.pack()
+
+        top_level.grab_set()
         
         
 # Início Programa

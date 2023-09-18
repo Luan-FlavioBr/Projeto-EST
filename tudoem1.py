@@ -288,6 +288,12 @@ def inserirDados_noBD():
 # Frame Análise Pareto
 def gerarAnalise(gerarAnalise):
     from PIL import Image
+
+
+    def sair_top():
+        top_level.destroy()
+
+
     selecionado = table_baseDados.selection()
     if selecionado:
         item_selecionado = selecionado[0]
@@ -340,14 +346,18 @@ def gerarAnalise(gerarAnalise):
         label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto", font=("calibri bold", 24))
         label_titulo_grafico.pack(pady=50) 
 
-        fig = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
+        localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
 
-        canvas = FigureCanvasTkAgg(fig, master=scroll_frame_pareto)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.configure(width=700, height=400)
-        canvas_widget.pack()
+        print(localDaImagem)
+        my_image = ctk.CTkImage(light_image=Image.open(localDaImagem),
+                                  dark_image=Image.open(localDaImagem),
+                                  size=(600, 300))
+
+        image_label = ctk.CTkLabel(scroll_frame_pareto, image=my_image, text="").pack()
+        
 
         top_level.grab_set()
+        top_level.protocol("WM_DELETE_WINDOW", sair_top)
         
         
 # Início Programa

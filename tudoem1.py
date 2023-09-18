@@ -5,6 +5,7 @@ Boa sorte! >:)
 
 import tkinter as tk
 from tkinter import filedialog, PhotoImage, END, ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import customtkinter as ctk
 import os
 
@@ -100,7 +101,7 @@ def login_clicado():
 # Funções da tela principal
 def sair():
     janela.destroy()
-
+    os._exit(0)
 
 def carregarDados():
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
@@ -244,6 +245,7 @@ def inserirDados_noBD():
     tableData = buscar_rol_dados("teste2")
     carregar_tabela()
 
+
 # Frame Análise Pareto
 def gerarAnalise(gerarAnalise):
     from PIL import Image
@@ -299,13 +301,11 @@ def gerarAnalise(gerarAnalise):
         label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto")
         label_titulo_grafico.pack(pady=50) 
 
-        #localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise) ERRO DESGRTAÇADO
+        fig = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise) #ERRO DESGRTAÇADO
 
-        my_image = ctk.CTkImage(light_image=Image.open("ParetoExelGrafico\GraficoPareto.png"),
-                                  dark_image=Image.open("ParetoExelGrafico\GraficoPareto.png"),
-                                  size=(30, 30))
-        
-        image_label = ctk.CTkLabel(top_level, image=my_image, text="").pack()
+        canvas = FigureCanvasTkAgg(fig, master=scroll_frame_pareto)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.pack()
         
         
 # Início Programa
@@ -314,6 +314,7 @@ janela = ctk.CTk()
 # Tela Login!
 janela.title("Tela Login")
 janela.resizable(width=False, height=False)
+janela.protocol("WM_DELETE_WINDOW", sair)
 screen_width = janela.winfo_screenwidth()
 screen_height = janela.winfo_screenheight()
 

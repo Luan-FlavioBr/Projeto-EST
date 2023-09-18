@@ -179,19 +179,18 @@ def aplicacaoGraficoPareto(localDoArquivo, gerarExel=False):
         ax2.annotate(f'{y:.2f}%', xy=(x, y), xytext=(5, -25), textcoords='offset points',
                     ha='center', fontsize=12)
 
-    plt.savefig(f'{localDaImagem}.png',format='png',dpi = 600, bbox_inches = 'tight')
-
     if gerarExel:
-        paretoGrafico = Image('ParetoExelGrafico/GraficoPareto.png')
+        plt.savefig(f'{localDaImagem}.png',format='png',dpi = 600, bbox_inches = 'tight')
+        paretoGrafico = Image(f'{localDaImagem}.png')
         paretoGrafico.width = 600
         paretoGrafico.height = 350
         sheet.add_image(paretoGrafico, f"C{ultimaLinha + 3}")
-        workbook.save('ParetoExelGrafico/analise.xlsx')
-        subprocess.run(['start', '', 'ParetoExelGrafico/analise.xlsx'], shell=True)
-        return f'{localDaImagem}.png'
+        workbook.save(f'{localDaImagem}/analise.xlsx')
+        subprocess.run(['start', '', f'{localDaImagem}/analise.xlsx'], shell=True)
+        return fig
     else:
         os.remove(localDoArquivo)
-        return f'{localDaImagem}.png'
+        return fig
 
 
 def lerarquivo(localDoArquivo):

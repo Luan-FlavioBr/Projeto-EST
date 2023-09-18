@@ -15,6 +15,27 @@ def retornar_tables():
     return lista
 
 
+def retornar_tables_pareto():
+    banco = sql.connect("banco_cadastro.db")
+    cursor = banco.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+
+    tabelas = cursor.fetchall()
+
+    lista = list()
+    for tabela in tabelas:
+        tabela = tabela[0]
+        if tabela != 'usuarios' and "_1" not in tabela:
+            lista.append(tabela)
+
+
+    banco.commit()
+    banco.close()
+    
+    return lista
+
+
 def cadastrar_usuario(login, senha):
     banco = sql.connect("banco_cadastro.db")
     cursor = banco.cursor()

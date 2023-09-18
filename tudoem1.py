@@ -170,33 +170,40 @@ def tela_error(mensagem):
 
 def escolherCaminhoArquivo():
     janela.focus_set()
-    origem = filedialog.askopenfilename(initialdir="/Desktop",
-                                          title="Abrir exel",
-                                          filetypes = (("Arquivos Exel","*.xlsx"), ("Arquivos txt","*.txt")))
+    if radio_var.get() != 0:
+        origem = filedialog.askopenfilename(initialdir="/Desktop",
+                                            title="Abrir exel",
+                                            filetypes = (("Arquivos Exel","*.xlsx"), ("Arquivos txt","*.txt")))
 
-    resultado = salvar_no_bd(origem, entry_nome_bd.get())
-    if resultado == None:
-        tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
-    elif resultado == 'Nome Table Error':
-        tela_error("O nome do conjunto de dados já existe!")
-    else:
-        global tableDataBaseDados
-        tableDataBaseDados = retornar_tables()
-        tableDataBaseDados.pop(tableDataBaseDados.index('usuarios'))
-        print(tableDataBaseDados)
-        limpar_tabela_bd()
-        carregar_tabela_bd()
+        resultado = salvar_no_bd(origem, f'{entry_nome_bd.get()}_{radio_var.get()}')
+        
+        if resultado == None:
+            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
+        elif resultado == 'Nome Table Error':
+            tela_error("O nome do conjunto de dados já existe!")
+        else:
+            global tableDataBaseDados
+            tableDataBaseDados = retornar_tables_pareto()
+            limpar_tabela_bd()
+            carregar_tabela_bd()
 
 
 def salvar_no_bd(origem, nome_do_table):
     entry_nome_bd.delete(0, END)
     tipo_arquivo = origem.split('/')[-1].split(".")[-1]
+    
     if tipo_arquivo == "txt":
-        lista_de_dados = pegar_dados_qualitativos_txt(origem)
-        return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        if radio_var.get() == 1:
+            ...
+        elif radio_var.get() == 2:
+            lista_de_dados = pegar_dados_qualitativos_txt(origem)
+            return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
     elif tipo_arquivo == "xlsx":
-        lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
-        return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        if radio_var.get() == 1:
+            ...
+        elif radio_var.get() == 2:
+            lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
+            return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
 
 
 # Funções frame digitar dados
@@ -250,8 +257,6 @@ def pegar_item(event):
     
     if selecionado:
         item_selecionado = selecionado[0]
-        # for item in selecionado:
-        #     index = int(item[1:]) - 1
         valor_linha = table.item(item_selecionado, 'values')
         
         top_level = ctk.CTkToplevel(janela)
@@ -301,7 +306,7 @@ def gerarAnalise(gerarAnalise):
         scroll_frame_pareto = ctk.CTkScrollableFrame(top_level)
         scroll_frame_pareto.pack(fill="both", expand=True)
 
-        label_titulo = ctk.CTkLabel(scroll_frame_pareto, text="Tabela de Análise de Pareto", width=200, height=35)
+        label_titulo = ctk.CTkLabel(scroll_frame_pareto, text="Tabela de Análise de Pareto", width=200, height=35, font=("calibri bold", 24))
         label_titulo.pack()
 
         # Fazendo a tabela de análise de pareto
@@ -332,13 +337,14 @@ def gerarAnalise(gerarAnalise):
         tablePareto.pack()
         top_level.focus_get()
         
-        label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto")
+        label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto", font=("calibri bold", 24))
         label_titulo_grafico.pack(pady=50) 
 
-        fig = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise) #ERRO DESGRTAÇADO
+        fig = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
 
         canvas = FigureCanvasTkAgg(fig, master=scroll_frame_pareto)
         canvas_widget = canvas.get_tk_widget()
+        canvas_widget.configure(width=700, height=400)
         canvas_widget.pack()
 
         top_level.grab_set()
@@ -527,20 +533,20 @@ style.configure("Treeview", background="#343638", fieldbackground="#242424", for
 
 table.place(rely=0.5, relx=0.5, anchor="center")
 
-radio_var = ctk.IntVar(value=0)
-radio_button_1 = ctk.CTkRadioButton(frame_digitar, text="Quantitativo",
-                                            variable= radio_var, value=1)
-radio_button_1.place(relx=0.35, rely=0.75, anchor="center")
+radio_var_digitar = ctk.IntVar(value=0)
+radio_button_1_digitar = ctk.CTkRadioButton(frame_digitar, text="Quantitativo",
+                                            variable= radio_var_digitar, value=1)
+radio_button_1_digitar.place(relx=0.35, rely=0.75, anchor="center")
 
 
-radio_button_2 = ctk.CTkRadioButton(frame_digitar, text="Qualitativo",
-                                            variable= radio_var, value=2)
-radio_button_2.place(relx=0.5, rely=0.75, anchor="center")
+radio_button_3_digitar = ctk.CTkRadioButton(frame_digitar, text="Qualitativo",
+                                            variable= radio_var_digitar, value=2)
+radio_button_3_digitar.place(relx=0.5, rely=0.75, anchor="center")
 
 
-radio_button_2 = ctk.CTkRadioButton(frame_digitar, text="Ambos",
-                                            variable= radio_var, value=3)
-radio_button_2.place(relx=0.65, rely=0.75, anchor="center")
+radio_button_3_digitar = ctk.CTkRadioButton(frame_digitar, text="Ambos",
+                                            variable= radio_var_digitar, value=3)
+radio_button_3_digitar.place(relx=0.65, rely=0.75, anchor="center")
 
 button_inserir_rol_dados = ctk.CTkButton(frame_digitar, width=235, height=45, corner_radius=15,
                                          text="Salvar no banco de dados", command=inserirDados_noBD)
@@ -554,8 +560,7 @@ label_analise_pareto = ctk.CTkLabel(frame_analise_pareto, text='Análise Pareto'
 label_analise_pareto.place(relx=0.5, rely=0.05, anchor="center")
 
 tableColumnsBaseDados = ['Base de Dados']
-tableDataBaseDados = retornar_tables()
-tableDataBaseDados.pop(tableDataBaseDados.index('usuarios'))
+tableDataBaseDados = retornar_tables_pareto()
 
 table_baseDados = ttk.Treeview(master=frame_analise_pareto, columns=tableColumnsBaseDados, show="headings")
 for column in tableColumnsBaseDados:

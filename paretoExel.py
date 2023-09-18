@@ -180,7 +180,7 @@ def aplicacaoGraficoPareto(localDoArquivo, gerarExel=False):
                     ha='center', fontsize=12)
 
     if gerarExel:
-        plt.savefig(f'{localDaImagem}.png',format='png',dpi = 600, bbox_inches = 'tight')
+        plt.savefig(f'{localDaImagem}.png',format='png',dpi = 500, bbox_inches = 'tight')
         paretoGrafico = Image(f'{localDaImagem}.png')
         paretoGrafico.width = 600
         paretoGrafico.height = 350

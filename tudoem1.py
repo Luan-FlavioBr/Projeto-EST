@@ -31,6 +31,7 @@ def adicionarElementos(*args, tipo):
         for element in args:
             elementos_principal.append(element)
 
+
 def mudarTemaLogin():
     if switchTheme.get() == "on":
         janela._set_appearance_mode("dark")
@@ -62,6 +63,7 @@ def mudarTemaPricipal():
         frame_menu._set_appearance_mode("light")
         for element in elementos_principal:
             element._set_appearance_mode("light")
+
 
 def login_clicado():
     login = entry_login.get()
@@ -97,17 +99,15 @@ def login_clicado():
             janela.resizable(width=True, height=True)
 
 
-
 # Funções da tela principal
 def sair():
     janela.destroy()
     os._exit(0)
 
+
 def carregarDados():
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=0.5, anchor="center")
-
-    #ctk.CTkButton(frame_carregar, text='Teste').pack(pady=50)
 
 
 def digitarDados():
@@ -126,6 +126,7 @@ def analisePareto():
     frame_analise_pareto.place(x=700, rely=0.5, anchor="center")
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
+
 
 # Funções frame carregar dados
 def segmented_escolha(value):
@@ -146,6 +147,15 @@ def segmented_escolha(value):
         label_frame_scroll_info.configure(text=texto, justify="left")
 
 
+def carregar_tabela_bd():
+    for dados in tableDataBaseDados:
+        table_baseDados.insert(parent='', index="end", values=(dados.split('\t')))
+
+
+def limpar_tabela_bd():
+    table_baseDados.delete(*table_baseDados.get_children())
+
+
 def tela_error(mensagem):
     top_level_error = ctk.CTkToplevel(janela)
     top_level_error.title("Error")
@@ -156,6 +166,7 @@ def tela_error(mensagem):
     label_error.place(relx=0.5, rely=0.5, anchor="center")
 
     top_level_error.grab_set()
+
 
 def escolherCaminhoArquivo():
     janela.focus_set()
@@ -168,6 +179,14 @@ def escolherCaminhoArquivo():
         tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
     elif resultado == 'Nome Table Error':
         tela_error("O nome do conjunto de dados já existe!")
+    else:
+        global tableDataBaseDados
+        tableDataBaseDados = retornar_tables()
+        tableDataBaseDados.pop(tableDataBaseDados.index('usuarios'))
+        print(tableDataBaseDados)
+        limpar_tabela_bd()
+        carregar_tabela_bd()
+
 
 def salvar_no_bd(origem, nome_do_table):
     entry_nome_bd.delete(0, END)
@@ -179,8 +198,8 @@ def salvar_no_bd(origem, nome_do_table):
         lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
         return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
 
-# Funções frame digitar dados
 
+# Funções frame digitar dados
 # Não deixa mexer no tamanho da coluna da table
 def prevent_resize(event):
     if table.identify_region(event.x, event.y) == "separator":
@@ -199,6 +218,7 @@ def adicionar_item():
             table.insert(parent='', index='end', values=(dado.split('\t')))
         entry_dados.delete(0, END)
         frame_digitar.focus_set()
+
 
 def carregar_tabela():
     for dados in tableData:
@@ -535,6 +555,7 @@ label_analise_pareto.place(relx=0.5, rely=0.05, anchor="center")
 
 tableColumnsBaseDados = ['Base de Dados']
 tableDataBaseDados = retornar_tables()
+tableDataBaseDados.pop(tableDataBaseDados.index('usuarios'))
 
 table_baseDados = ttk.Treeview(master=frame_analise_pareto, columns=tableColumnsBaseDados, show="headings")
 for column in tableColumnsBaseDados:

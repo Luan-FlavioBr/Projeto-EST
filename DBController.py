@@ -65,6 +65,7 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
             return None
         finally:
             banco.close()
+            return True
 
 
 def buscar_rol_dados(nome_table):

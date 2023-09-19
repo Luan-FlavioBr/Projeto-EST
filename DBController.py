@@ -27,7 +27,7 @@ def retornar_tables_pareto():
     for tabela in tabelas:
         tabela = tabela[0]
         if tabela != 'usuarios' and "_1" not in tabela:
-            lista.append(tabela)
+            lista.append(tabela[:-2])
 
 
     banco.commit()
@@ -91,17 +91,29 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
 
 def buscar_rol_dados(nome_table):
     lista_de_dados = []
-    banco = sql.connect('banco_cadastro.db')
-    cursor = banco.cursor()
-    
-    cursor.execute(f"SELECT * FROM {nome_table}")
-    
-    while True:
-        dado = cursor.fetchone()
-        if dado != None:
-            lista_de_dados.append(dado[1])
-        else:
+    tabelas_banco = retornar_tables()
+    for i, tabela_banco in enumerate(tabelas_banco):
+        if nome_table == tabela_banco[:-2]:
+            index = i
+            nome_table = tabelas_banco[index]
             break
-    banco.commit()
-    banco.close()
+    try: 
+        banco = sql.connect('banco_cadastro.db')
+        cursor = banco.cursor()
+        
+        cursor.execute(f"SELECT * FROM {nome_table}")
+        
+        while True:
+            dado = cursor.fetchone()
+            if dado != None:
+                lista_de_dados.append(dado[1])
+            else:
+                break
+        banco.commit()
+    except Exception as e:
+        print(e)
+        banco.rollback()
+    finally:
+        banco.close()
+
     return lista_de_dados

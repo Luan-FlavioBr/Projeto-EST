@@ -13,6 +13,7 @@ from DBController import *
 from cadastro import *
 from conversaoTxt import *
 from paretoExel import *
+from tratamentos import *
 
 
 # Função da tela de cadastro
@@ -201,7 +202,12 @@ def salvar_no_bd(origem, nome_do_table):
     elif tipo_arquivo == "xlsx":
         if radio_var.get() == 1:
             ...
+
         elif radio_var.get() == 2:
+            lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
+            return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        
+        elif radio_var.get() == 3:
             lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
             return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
 
@@ -285,6 +291,15 @@ def inserirDados_noBD():
     carregar_tabela()
 
 
+def verificar_tipo_table(nome_table):
+    tabelas_banco = retornar_tables()
+    for i, tabela_banco in enumerate(tabelas_banco):
+        if nome_table == tabela_banco[:-2]:
+            index = i
+            nome_table = tabelas_banco[index]
+            return int(nome_table[-1:])
+
+
 # Frame Análise Pareto
 def gerarAnalise(gerarAnalise):
     from PIL import Image
@@ -307,7 +322,20 @@ def gerarAnalise(gerarAnalise):
         origem = filedialog.askdirectory(initialdir="/Desktop",
                                             title="Abrir exel")
         
-        localDoArquivo = operacoesExel(origem, origem, buscar_rol_dados(valor_linha[0]))
+        lista_quali = buscar_rol_dados(valor_linha[0])
+        tipo_table = verificar_tipo_table(valor_linha[0])
+
+        if tipo_table == 3:
+            print('entrou')
+            lista_quali_temp = list(set(lista_quali))
+            custo_de_ocorrencia = list()
+            for i in lista_quali_temp:
+                custo = ctk.CTkInputDialog(text=f"Insira o custo da ocorrência: {i}", title="Insira o custo")
+                custo.geometry('%dx%d+%d+%d' % (350, 200, x, y))
+                custo_de_ocorrencia.append(lerfloat(custo.get_input()))
+            localDoArquivo = operacoesExel(origem, origem, lista_quali, 2, custo_de_ocorrencia)
+        else:
+            localDoArquivo = operacoesExel(origem, origem, lista_quali, 1)
 
         scroll_frame_pareto = ctk.CTkScrollableFrame(top_level)
         scroll_frame_pareto.pack(fill="both", expand=True)
@@ -316,7 +344,12 @@ def gerarAnalise(gerarAnalise):
         label_titulo.pack()
 
         # Fazendo a tabela de análise de pareto
-        tableColumns = ['Tipo de falha','Nº de Ocorrências','Fr(%)', 'Fr Acum(%)']
+        tableColumns = list()
+
+        if tipo_table != 3:
+            tableColumns = ['Tipo de falha','Nº de Ocorrências','Fr(%)', 'Fr Acum(%)']
+        else:
+            tableColumns = ['Tipo de falha','Nº de Ocorrências','Impacto de custo/ocorr.','Total','Fr(%)', 'Fr Acum(%)']
 
         tablePareto = ttk.Treeview(master=scroll_frame_pareto, columns=tableColumns, show="headings")
         for column in tableColumns:
@@ -327,6 +360,10 @@ def gerarAnalise(gerarAnalise):
         tablePareto.column("Fr(%)", anchor='e')
         tablePareto.column("Fr Acum(%)", anchor='e')
 
+        if tipo_table == 3:
+            tablePareto.column("Impacto de custo/ocorr.", anchor='e')
+            tablePareto.column("Total", anchor='e')
+
         stylePareto = ttk.Style()
         stylePareto.theme_use('default')
         stylePareto.configure("Treeview.Heading", background="#1F6AA5", foreground="white", font=("arial bold", 15), borderwidth=0, relief = 'flat')
@@ -335,27 +372,30 @@ def gerarAnalise(gerarAnalise):
         stylePareto.configure("Treeview", background="#343638", fieldbackground="#242424", foreground="white",
                         corner_radius=15, borderwidth=1)
         
-        tableDataPareto = lerarquivo(localDoArquivo)
+        if tipo_table != 3:
+            tableDataPareto = lerarquivo(localDoArquivo, 1)
+        else:
+            tableDataPareto = lerarquivo(localDoArquivo, 2)
         
         for rowData in tableDataPareto:
             tablePareto.insert(parent='', index='end', values=rowData)
         
         tablePareto.pack()
-        top_level.focus_get()
         
         label_titulo_grafico = ctk.CTkLabel(scroll_frame_pareto, text="Gráfico de Pareto", font=("calibri bold", 24))
         label_titulo_grafico.pack(pady=50) 
 
-        localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise)
+        if tipo_table != 3:
+            localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise, 1)
+        else:
+            localDaImagem = aplicacaoGraficoPareto(localDoArquivo, gerarAnalise, 2)
 
-        print(localDaImagem)
         my_image = ctk.CTkImage(light_image=Image.open(localDaImagem),
                                   dark_image=Image.open(localDaImagem),
                                   size=(600, 300))
 
         image_label = ctk.CTkLabel(scroll_frame_pareto, image=my_image, text="").pack()
         
-
         top_level.grab_set()
         top_level.protocol("WM_DELETE_WINDOW", sair_top)
         

@@ -268,7 +268,6 @@ def aplicacaoGraficoPareto(localDoArquivo, gerarExel=False, tipo=1):
 
 def lerarquivo(localDoArquivo, tipo):
     arrumar_exel(localDoArquivo)
-    print(localDoArquivo)
     workbook = openpyxl.load_workbook(localDoArquivo, data_only = True)
     sheet = workbook.active
 

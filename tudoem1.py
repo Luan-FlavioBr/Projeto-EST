@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import filedialog, PhotoImage, END, ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import customtkinter as ctk
+from CTkListbox import *
 import os
 
 from DBController import *
@@ -106,11 +107,6 @@ def sair():
     os._exit(0)
 
 
-def carregarDados():
-    frame_digitar.place(x=700, rely=-0.5, anchor="center")
-    frame_carregar.place(x=700, rely=0.5, anchor="center")
-
-
 def digitarDados():
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=0.5, anchor="center")
@@ -125,6 +121,13 @@ def carregarDados():
 
 def analisePareto():
     frame_analise_pareto.place(x=700, rely=0.5, anchor="center")
+    frame_digitar.place(x=700, rely=-0.5, anchor="center")
+    frame_carregar.place(x=700, rely=-0.5, anchor="center")
+
+
+def editarDados():
+    frame_editar_dados.place(x=700, rely=0.5, anchor="center")
+    frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
 
@@ -326,7 +329,6 @@ def gerarAnalise(gerarAnalise):
         tipo_table = verificar_tipo_table(valor_linha[0])
 
         if tipo_table == 3:
-            print('entrou')
             lista_quali_temp = list(set(lista_quali))
             custo_de_ocorrencia = list()
             for i in lista_quali_temp:
@@ -399,7 +401,99 @@ def gerarAnalise(gerarAnalise):
         top_level.grab_set()
         top_level.protocol("WM_DELETE_WINDOW", sair_top)
         
-        
+
+def abrir_top_crud(selecionado):
+    def limpar_tabela_dados():
+        table_Dados.delete(*table_Dados.get_children())
+
+
+    def carregar_tabela_dados():
+        for dados in tableDataDadosReturns:
+            table_Dados.insert(parent='', index="end", values=(dados))
+
+
+    def atualizar_item(valor):
+        valor[1] = entry_editar_dados.get()
+        valor[0] = int(valor[0])
+        atualizar_dado(valor, selecionado)
+
+        global tableDataDadosReturns
+        tableDataDadosReturns = buscar_rol_dados_com_id(selecionado)
+        limpar_tabela_dados()
+        carregar_tabela_dados()
+
+
+    def deletar_item(valor):
+        print(valor, selecionado)
+        deletar_registro(valor, selecionado)
+        limpar_tabela_dados()
+        carregar_tabela_dados()
+
+    def item_pego(event):
+        entry_editar_dados.delete(0, END)
+        linha_selecionada = table_Dados.selection()
+
+        if linha_selecionada:
+            item_selecionado = linha_selecionada[0]
+            valor_linha = table_Dados.item(item_selecionado, 'values')
+
+            entry_editar_dados.configure(state="normal")
+            entry_editar_dados.insert(0, valor_linha[1])
+            
+            button_editar_dado.configure(command=lambda:atualizar_item(list(valor_linha)))
+
+            button_deletar_dado.configure(command=lambda:deletar_item(list(valor_linha)))
+
+
+    dados_retornados = buscar_rol_dados_com_id(selecionado)
+
+    top_level_editar_dados = ctk.CTkToplevel(janela)
+ 
+    top_level_editar_dados.title("Análise de Pareto")
+    top_level_editar_dados.geometry('%dx%d+%d+%d' % (900, 500, x, y))
+    top_level_editar_dados.resizable(width=False, height=False)
+
+    tableColumnsDadosReturns = ['ID', "Dados"]
+    tableDataDadosReturns = dados_retornados
+
+    table_Dados = ttk.Treeview(master=top_level_editar_dados, columns=tableColumnsDadosReturns, show="headings")
+    for column in tableColumnsDadosReturns:
+        table_Dados.heading(column=column, text=column)
+        table_Dados.column(column=column, width=250)
+
+    table_Dados.column("ID", anchor='e', width=65)
+    table_Dados.column("Dados", anchor='e', width=335)
+
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure("Treeview", background="#1F6AA5", foreground="white", font=("arial", 14), borderwidth=0, relief = 'flat')
+    style.configure("Treeview.Heading", background="#1F6AA5", foreground="white", font=("Calibri bold", 17), borderwidth=0, relief = 'flat')
+    style.map("Treeview.Heading", background=[("pressed", "!focus", "#1F6AA5"), ("active", "#1F6AA5"), ("disabled", "white")])
+
+    style.configure("Treeview", background="#343638", fieldbackground="#242424", foreground="white",
+                    corner_radius=15, borderwidth=1)
+
+
+    table_Dados.place(rely=0.35, relx=0.5, anchor="center")
+
+    table_Dados.bind('<Motion>', prevent_resize)
+    table_Dados.bind('<<TreeviewSelect>>', item_pego)
+
+    for dados in tableDataDadosReturns:
+        table_Dados.insert(parent='', index="end", values=(dados))
+
+    entry_editar_dados = ctk.CTkEntry(top_level_editar_dados, width=350, height=35, placeholder_text="Dado", state="disabled")
+    entry_editar_dados.place(rely=0.65, relx=0.5, anchor="center")
+
+    button_editar_dado = ctk.CTkButton(top_level_editar_dados, width=150, height=35, text="Alterar")
+    button_editar_dado.place(rely=0.75, relx=0.40, anchor="center")
+
+    button_deletar_dado = ctk.CTkButton(top_level_editar_dados, width=150, height=35, text="Deletar")
+    button_deletar_dado.place(rely=0.75, relx=0.60, anchor="center")
+
+    top_level_editar_dados.focus_set()
+
+
 # Início Programa
 janela = ctk.CTk()
 
@@ -459,6 +553,10 @@ frame_digitar.place(x=700, rely=-0.5, anchor="center")
 
 frame_analise_pareto = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+
+frame_editar_dados = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
+frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+
 # Fim posicionamento
 
 # Fonts
@@ -490,6 +588,11 @@ button_pareto.place(y=120, x=90, anchor="center")
 button_medidas = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
                                 text="Medidas e tabelas", font=font_normal)
 button_medidas.place(y=165, x=90, anchor="center")
+
+
+button_editar = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
+                                text="Editar dados", font=font_normal, command=editarDados)
+button_editar.place(y=210, x=90, anchor="center")
 
 
 switchTheme2 = ctk.CTkSwitch(master=frame_menu, text="Tema", command=mudarTemaPricipal, variable=switch_var_principal, 
@@ -651,6 +754,21 @@ checkbox_gerar_exel.place(relx=0.5, rely=0.85, anchor="center")
 
 
 # # Fim frame medidas e tabelas
+# ----------------------------------------------------------------------------------------------------------------------------------------
+# Incio frame editar dados
+label_editar_dados = ctk.CTkLabel(frame_editar_dados, text='Editar dados', font=('arial normal', 24))
+label_editar_dados.place(relx=0.5, rely=0.05, anchor="center")
+
+label_titulo_listbox = ctk.CTkLabel(frame_editar_dados, text='Escolha o conjunto de dados', font=('arial normal', 18))
+label_titulo_listbox.place(relx=0.5, rely=0.15, anchor="center")
+
+listbox_de_tabelas = CTkListbox(frame_editar_dados, width=550, height=350, command=abrir_top_crud)
+listbox_de_tabelas.place(relx=0.5, rely=0.5, anchor="center")
+
+lista_de_tabelas_bd = retornar_tables()
+for i, nome_tabela in enumerate(lista_de_tabelas_bd):
+    listbox_de_tabelas.insert(i, nome_tabela)
+# Fim frame editar dados
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Estilo de tema
 

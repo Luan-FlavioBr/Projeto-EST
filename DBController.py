@@ -8,7 +8,11 @@ def retornar_tables():
 
     tabelas = cursor.fetchall()
 
-    lista = [nome[0] for nome in tabelas]
+    lista = []
+    for nome in tabelas:
+        if nome[0] != "usuarios":
+            lista.append(nome[0])
+
     banco.commit()
     banco.close()
     
@@ -117,3 +121,60 @@ def buscar_rol_dados(nome_table):
         banco.close()
 
     return lista_de_dados
+
+def buscar_rol_dados_com_id(nome_table):
+    lista_de_dados = []
+    tabelas_banco = retornar_tables()
+    for i, tabela_banco in enumerate(tabelas_banco):
+        if nome_table == tabela_banco[:-2]:
+            index = i
+            nome_table = tabelas_banco[index]
+            break
+    try: 
+        banco = sql.connect('banco_cadastro.db')
+        cursor = banco.cursor()
+        
+        cursor.execute(f"SELECT * FROM {nome_table}")
+        
+        while True:
+            dado = cursor.fetchone()
+            if dado != None:
+                lista_de_dados.append(dado)
+            else:
+                break
+        banco.commit()
+    except Exception as e:
+        print(e)
+        banco.rollback()
+    finally:
+        banco.close()
+
+    return lista_de_dados
+
+
+def atualizar_dado(lista, nome_table):
+    try:
+        banco = sql.connect("banco_cadastro.db")
+        cursor = banco.cursor()
+
+        cursor.execute(f"UPDATE {nome_table} SET dado = ? WHERE id = ?", (lista[1], lista[0]))
+        banco.commit()
+    except Exception as e:
+        print(e)
+        banco.rollback()
+    finally:
+        banco.close()
+
+
+def deletar_registro(lista, nome_table):
+    try:
+        banco = sql.connect("banco_cadastro.db")
+        cursor = banco.cursor()
+
+        cursor.execute(f"DELETE FROM {nome_table} WHERE id = ?", (lista[0],))
+        banco.commit()
+    except Exception as e:
+        print(e)
+        banco.rollback()
+    finally:
+        banco.close()

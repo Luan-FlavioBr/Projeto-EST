@@ -111,18 +111,21 @@ def digitarDados():
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=0.5, anchor="center")
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+    frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
 
 
 def carregarDados():
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=0.5, anchor="center")
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+    frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
 
 
 def analisePareto():
     frame_analise_pareto.place(x=700, rely=0.5, anchor="center")
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
+    frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
 
 
 def editarDados():

@@ -408,6 +408,9 @@ def abrir_top_crud(selecionado):
 
 
     def carregar_tabela_dados():
+        global tableDataDadosReturns
+        tableDataDadosReturns = buscar_rol_dados_com_id(selecionado)
+
         for dados in tableDataDadosReturns:
             table_Dados.insert(parent='', index="end", values=(dados))
 
@@ -417,14 +420,11 @@ def abrir_top_crud(selecionado):
         valor[0] = int(valor[0])
         atualizar_dado(valor, selecionado)
 
-        global tableDataDadosReturns
-        tableDataDadosReturns = buscar_rol_dados_com_id(selecionado)
         limpar_tabela_dados()
         carregar_tabela_dados()
 
 
     def deletar_item(valor):
-        print(valor, selecionado)
         deletar_registro(valor, selecionado)
         limpar_tabela_dados()
         carregar_tabela_dados()

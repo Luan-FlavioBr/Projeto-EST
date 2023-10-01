@@ -292,9 +292,15 @@ def pegar_item(event):
 
 def inserirDados_noBD():
     global tableData
-    inserir_rol_dados_qualitativos(tableData, "teste2")
-    tableData = buscar_rol_dados("teste2")
-    carregar_tabela()
+    if radio_var_digitar.get() != 0:
+        nome_bd = f'{entry_nome_bd_digitar.get()}_{radio_var_digitar.get()}'
+        resultado = inserir_rol_dados_qualitativos(tableData, nome_bd)
+        entry_nome_bd_digitar.delete(0, END)
+        limpar_tabela()
+        if resultado == None:
+            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
+        elif resultado == 'Nome Table Error':
+            tela_error("O nome do conjunto de dados já existe!")
 
 
 def verificar_tipo_table(nome_table):
@@ -704,9 +710,13 @@ radio_button_3_digitar = ctk.CTkRadioButton(frame_digitar, text="Ambos",
                                             variable= radio_var_digitar, value=3)
 radio_button_3_digitar.place(relx=0.65, rely=0.75, anchor="center")
 
+entry_nome_bd_digitar = ctk.CTkEntry(frame_digitar, width=275, height=45, corner_radius=15,
+                                     placeholder_text="Digite o nome do conjunto de dados")
+entry_nome_bd_digitar.place(relx=0.5, rely=0.83, anchor="center")
+
 button_inserir_rol_dados = ctk.CTkButton(frame_digitar, width=235, height=45, corner_radius=15,
                                          text="Salvar no banco de dados", command=inserirDados_noBD)
-button_inserir_rol_dados.place(relx=0.5, rely=0.85, anchor="center")
+button_inserir_rol_dados.place(relx=0.5, rely=0.93, anchor="center")
 
 # Fim frame digitar dados
 # ----------------------------------------------------------------------------------------------------------------------------------------

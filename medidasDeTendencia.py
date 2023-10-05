@@ -6,17 +6,13 @@ import openpyxl
 import matplotlib.pyplot as plt
 from openpyxl.styles import Font, Alignment
 import xlwings
+import os
 
-
-ultimaCelula = 0
-def realizarMedidas():
-    workbook = openpyxl.load_workbook("HistogramaExel/baseDados.xlsx", data_only=True)
+def ler_dados_quantitativos_exel(origem):
+    workbook = openpyxl.load_workbook(origem, data_only=True)
     sheet = workbook.active
-
-    # Pegar a matriz de dados
-    lista = list()
     letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-
+    lista = list()
     numeroCelula = 1
     ultimaLetra = ''
     ultimaCelula = 0
@@ -24,7 +20,7 @@ def realizarMedidas():
         celula = ''
         while True:
             celula = sheet[f'{letra}{numeroCelula}'].value
-            if celula != None and not isinstance(celula, str):
+            if celula != None:
                 lista.append(celula)
                 sheet[f'{letra}{numeroCelula}'] = ''
                 ultimaCelula = numeroCelula
@@ -33,13 +29,24 @@ def realizarMedidas():
             else:
                 numeroCelula = 1
                 break
+    return lista
+
+
+def realizarMedidas(lista, origemArquivo):
+    ultimaCelula = 0
+    localDoArquivo = f"{origemArquivo}/histograma.xlsx"
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+
+    # Pegar a matriz de dados
+    letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     
     for i, numero in enumerate(lista):
         sheet[f"A{i+1}"] = numero
         if numero == lista[-1]:
             ultimaCelula = len(lista)
             ultimaLetra = 'A'
-    
+
     tamanha_rol_dados = ["$A$1", f"$A${ultimaCelula}"]
 
     lista.sort()
@@ -171,8 +178,6 @@ def realizarMedidas():
         sheet[f'{letras[indice_proxima_letra+i]}3'] = padrao
         celula_atual = sheet[f'{letras[indice_proxima_letra+i]}2']
         celula_atual.alignment = Alignment(horizontal='center')
-        # if i == 4 or i == 5:
-        #     sheet[f'{letras[indice_proxima_letra+i]}3'].number_format = "0.00%"
 
 
     # Inserindo os intervalos frequencias e o ponto médio
@@ -190,7 +195,7 @@ def realizarMedidas():
 
     sheet[f'{celula_fi}{ultimaCelula}'] = f"=SUM({celula_fi}{3}:{celula_fi}{ultimaCelula - 1})"
     celula_soma = f'{celula_fi}{ultimaCelula}'
-    workbook.save("HistogramaExel/histograma.xlsx")
+    workbook.save(f"{origemArquivo}/histograma.xlsx")
 
     # Inserindo o Fr
     celula_fr = letras[letras.index(inicio_tabela_frequencia) + 3]
@@ -200,7 +205,7 @@ def realizarMedidas():
 
     celula_soma_fr = f"{letras[letras.index(inicio_tabela_frequencia) + 3]}{ultimaCelula}"
     sheet[celula_soma_fr] = f'=SUM({celula_fr}4:{celula_fr}{ultimaCelula-1})'
-    workbook.save("HistogramaExel/histograma.xlsx")
+    workbook.save(f"{origemArquivo}/histograma.xlsx")
 
     # Inserindo Fr(%)
     celula_fr_porcento = letras[letras.index(inicio_tabela_frequencia) + 4]
@@ -222,21 +227,22 @@ def realizarMedidas():
             #sheet[f'{celula_fr_porcento_acumulada}{4+fr_p_acum}'].number_format = '0.00%'
 
     # print((lista_teste[i] + lista_teste[i+1]) / 2)
-    workbook.save("HistogramaExel/histograma.xlsx")
+    workbook.save(f"{origemArquivo}/histograma.xlsx")
 
 
-def arrumar_exel():
+def arrumar_exel(origemArquivo):
     # Arrumar .xlsx para resguardar a sanidade mental do Luan!
-    data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx')
-    data.save('HistogramaExel/histograma.xlsx')
+    data = openpyxl.load_workbook(f"{origemArquivo}/histograma.xlsx")
+    data.save(f"{origemArquivo}/histograma.xlsx")
     excel_app = xlwings.App(visible=False)
-    excel_book = excel_app.books.open('HistogramaExel/histograma.xlsx')
+    excel_book = excel_app.books.open(f"{origemArquivo}/histograma.xlsx")
     excel_book.save()
     excel_book.close()
     excel_app.quit()
 
 
-def retornar_dados_medidas_t_central():
+# Função para fazer a table de medidas de classe nas telas
+def retornar_dados_medidas_t_central(origemArquivo):
     arrumar_exel()
     data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
     sheet = data.active
@@ -260,6 +266,7 @@ def retornar_dados_medidas_t_central():
     return titulos_medidas_tendencia_central, medidas_tendencia_central
 
 
+# Função para fazer o gráfico
 def retornar_dados_intervalo_classe():
     arrumar_exel()
     data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
@@ -284,6 +291,7 @@ def retornar_dados_intervalo_classe():
     return titulos_intervalos_classe, valores_intervalos_classe
 
 
+# Função para retornar a lista para fazer a table de frequencia nas telas
 def retornar_dados_tabela_freq():
     arrumar_exel()
     data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
@@ -371,6 +379,8 @@ def retornar_dados_tabela_freq():
 
     return titulos_tabela_freq, coluna_de_intervalo, coluna_ponto_medio, coluna_fi, coluna_fr, coluna_fr_p, coluna_fr_p_acum
 
+
+# Função para razer o table de intervalos de classe nas telas
 def dado_para_tabela():
     arrumar_exel()
     data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
@@ -436,6 +446,7 @@ def dado_para_tabela():
 
     return lista
 
+
 def realizar_grafico():
 
     # Dados fornecidos
@@ -476,6 +487,3 @@ def realizar_grafico():
     # Mostra o gráfico
     plt.tight_layout()  # Para evitar que os rótulos fiquem cortados
     plt.savefig('HistogramaExel/histograma.png',format='png',dpi = 600, bbox_inches = 'tight')
-
-
-realizarMedidas()

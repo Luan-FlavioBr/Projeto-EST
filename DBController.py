@@ -13,7 +13,6 @@ def retornar_tables():
         if nome[0] != "usuarios":
             lista.append(nome[0])
 
-    banco.commit()
     banco.close()
     
     return lista
@@ -33,8 +32,25 @@ def retornar_tables_pareto():
         if tabela != 'usuarios' and "_1" not in tabela:
             lista.append(tabela[:-2])
 
+    banco.close()
+    
+    return lista
 
-    banco.commit()
+
+def retornar_tables_histograma():
+    banco = sql.connect("banco_cadastro.db")
+    cursor = banco.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+
+    tabelas = cursor.fetchall()
+
+    lista = list()
+    for tabela in tabelas:
+        tabela = tabela[0]
+        if tabela != 'usuarios' and "_2" not in tabela and "_3" not in tabela:
+            lista.append(tabela[:-2])
+
     banco.close()
     
     return lista
@@ -91,6 +107,41 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
         finally:
             banco.close()
             return True
+
+
+def inserir_rol_dados_quantitativos(lista, nome_table):
+    banco = sql.connect('banco_cadastro.db')
+    cursor = banco.cursor()
+
+    nomes_tabelas = retornar_tables()
+    if nome_table in nomes_tabelas:
+        print("Entrou no error table")
+        return 'Nome Table Error'
+    else:
+        try:
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {nome_table} (id INTEGER PRIMARY KEY AUTOINCREMENT, dado REAL)")
+            for dado in lista:
+                dado = float(dado)
+                if isinstance(dado, float) or isinstance(dado, int):
+                    cursor.execute(f"INSERT INTO {nome_table} (dado) VALUES (?)", (dado,))
+                else:
+                    cursor.execute(f"DROP TABLE IF EXISTS {nome_table}")
+                    banco.commit()
+                    return None
+            banco.commit()
+        except ValueError as e:
+            cursor.execute(f"DROP TABLE IF EXISTS {nome_table}")
+            banco.commit()
+            banco.close()
+            return "ValueError"
+        except Exception as e:
+            print(e)
+            banco.rollback()
+            banco.close()
+            return None
+        else:
+            banco.close()
+            return "Cadastrado"
 
 
 def buscar_rol_dados(nome_table):

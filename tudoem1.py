@@ -15,6 +15,7 @@ from cadastro import *
 from conversaoTxt import *
 from paretoExel import *
 from tratamentos import *
+from medidasDeTendencia import *
 
 
 # Função da tela de cadastro
@@ -112,6 +113,7 @@ def digitarDados():
     frame_digitar.place(x=700, rely=0.5, anchor="center")
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+    frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
 
 
 def carregarDados():
@@ -119,10 +121,20 @@ def carregarDados():
     frame_carregar.place(x=700, rely=0.5, anchor="center")
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+    frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
 
 
 def analisePareto():
     frame_analise_pareto.place(x=700, rely=0.5, anchor="center")
+    frame_digitar.place(x=700, rely=-0.5, anchor="center")
+    frame_carregar.place(x=700, rely=-0.5, anchor="center")
+    frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+    frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+
+
+def medidasTendencia():
+    frame_medidas_tendencia.place(x=700, rely=0.5, anchor="center")
+    frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
@@ -133,6 +145,7 @@ def editarDados():
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
+    frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
 
 
 # Funções frame carregar dados
@@ -175,6 +188,18 @@ def tela_error(mensagem):
     top_level_error.grab_set()
 
 
+def tela_sucesso(mensagem):
+    top_level_error = ctk.CTkToplevel(janela)
+    top_level_error.title("Error")
+    top_level_error.resizable(width=False, height=False)
+    top_level_error.geometry('%dx%d+%d+%d' % (500, 250, x, y))
+
+    label_error = ctk.CTkLabel(top_level_error, text=mensagem, font=("calibri bold", 16), wraplength=499, text_color="green")
+    label_error.place(relx=0.5, rely=0.5, anchor="center")
+
+    top_level_error.grab_set()
+
+
 def escolherCaminhoArquivo():
     janela.focus_set()
     if radio_var.get() != 0:
@@ -185,14 +210,19 @@ def escolherCaminhoArquivo():
         resultado = salvar_no_bd(origem, f'{entry_nome_bd.get()}_{radio_var.get()}')
         
         if resultado == None:
-            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
+            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação dos dados digitados!")
+        elif resultado == "ValueError":
+            if radio_var.get() == 1:
+                tela_error("Erro ao salvar conjunto de dados! Seu aquivo contém dados qualitativos!")
+            else:
+                tela_error("Erro ao salvar conjunto de dados! Seu aquivo contém dados numéricos!")
         elif resultado == 'Nome Table Error':
             tela_error("O nome do conjunto de dados já existe!")
         else:
-            global tableDataBaseDados
-            tableDataBaseDados = retornar_tables_pareto()
-            limpar_tabela_bd()
-            carregar_tabela_bd()
+            tela_sucesso("Dados salvos!")
+            atualizar_table_histograma()
+            atualizar_table_pareto()
+            atualizar_listbox_editar()
 
 
 def salvar_no_bd(origem, nome_do_table):
@@ -201,18 +231,21 @@ def salvar_no_bd(origem, nome_do_table):
     
     if tipo_arquivo == "txt":
         if radio_var.get() == 1:
-            ...
+            lista_de_dados = pegar_dados_quantitativos_txt(origem)
+            return inserir_rol_dados_quantitativos(lista_de_dados, nome_do_table)
         elif radio_var.get() == 2:
+            lista_de_dados = pegar_dados_qualitativos_txt(origem)
+            return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
+        elif radio_var.get() == 3:
             lista_de_dados = pegar_dados_qualitativos_txt(origem)
             return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
     elif tipo_arquivo == "xlsx":
         if radio_var.get() == 1:
-            ...
-
+            lista_de_dados= ler_dados_quantitativos_exel(origem)
+            return inserir_rol_dados_quantitativos(lista_de_dados, nome_do_table)
         elif radio_var.get() == 2:
             lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
             return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
-        
         elif radio_var.get() == 3:
             lista_de_dados = pegar_dados_qualitativos_xlsx(origem)
             return inserir_rol_dados_qualitativos(lista_de_dados, nome_do_table)
@@ -233,8 +266,9 @@ def adicionar_item():
             formatado[i] = item.strip() 
 
         for dado in formatado:
-            tableData.append(dado)
-            table.insert(parent='', index='end', values=(dado.split('\t')))
+            if dado != "":
+                tableData.append(dado)
+                table.insert(parent='', index='end', values=(dado.split('\t')))
         entry_dados.delete(0, END)
         frame_digitar.focus_set()
 
@@ -294,13 +328,30 @@ def inserirDados_noBD():
     global tableData
     if radio_var_digitar.get() != 0:
         nome_bd = f'{entry_nome_bd_digitar.get()}_{radio_var_digitar.get()}'
-        resultado = inserir_rol_dados_qualitativos(tableData, nome_bd)
+        if radio_var_digitar.get() == 2 or radio_var_digitar.get() == 3: 
+            resultado = inserir_rol_dados_qualitativos(tableData, nome_bd)
+        else:
+            resultado = inserir_rol_dados_quantitativos(tableData, nome_bd)
         entry_nome_bd_digitar.delete(0, END)
         limpar_tabela()
+        tableData = list()
         if resultado == None:
-            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação do arquivo selecionado!")
+            tela_error("Erro ao salvar conjunto de dados! Siga corretamente a formatação dos dados digitados!")
+        elif resultado == "ValueError":
+            if radio_var_digitar.get() == 1:
+                tela_error("Erro ao salvar conjunto de dados! Você digitou dados qualitativos!")
+            else:
+                tela_error("Erro ao salvar conjunto de dados! Você digitou dados numéricos!")
         elif resultado == 'Nome Table Error':
             tela_error("O nome do conjunto de dados já existe!")
+        else:
+            atualizar_listbox_editar()
+            tela_sucesso("Dados salvos!")
+            if radio_var_digitar.get() == 1:
+                atualizar_table_histograma()
+            else:
+                atualizar_table_pareto()
+        
 
 
 def verificar_tipo_table(nome_table):
@@ -503,6 +554,26 @@ def abrir_top_crud(selecionado):
     top_level_editar_dados.focus_set()
 
 
+def atualizar_listbox_editar():
+    global lista_de_tabelas_bd
+    lista_de_tabelas_bd = retornar_tables()
+    for i, nome_tabela in enumerate(lista_de_tabelas_bd):
+        listbox_de_tabelas.insert(i, nome_tabela)
+
+
+def atualizar_table_pareto():
+    global tableDataBaseDados
+    tableDataBaseDados = retornar_tables_pareto()
+    limpar_tabela_bd()
+    carregar_tabela_bd()
+
+
+def atualizar_table_histograma():
+    global lista_de_tabelas_bd_medidas
+    lista_de_tabelas_bd_medidas = retornar_tables_histograma()
+    for i, nome_tabela in enumerate(lista_de_tabelas_bd_medidas):
+        listbox_de_tabelas_medidas.insert(i, nome_tabela)
+
 # Início Programa
 janela = ctk.CTk()
 
@@ -563,6 +634,9 @@ frame_digitar.place(x=700, rely=-0.5, anchor="center")
 frame_analise_pareto = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
 
+frame_medidas_tendencia = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
+frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+
 frame_editar_dados = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
 
@@ -595,7 +669,7 @@ button_pareto.place(y=120, x=90, anchor="center")
 
 
 button_medidas = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
-                                text="Medidas e tabelas", font=font_normal)
+                                text="Medidas e tabelas", font=font_normal, command=medidasTendencia)
 button_medidas.place(y=165, x=90, anchor="center")
 
 
@@ -763,8 +837,27 @@ checkbox_gerar_exel.place(relx=0.5, rely=0.85, anchor="center")
 # Fim frame análise pareto
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Incio frame medidas e tabelas
+label_medidas_tendencia = ctk.CTkLabel(frame_medidas_tendencia, text='Medidas de tendência central', font=('arial normal', 24))
+label_medidas_tendencia.place(relx=0.5, rely=0.05, anchor="center")
 
+label_titulo_listbox = ctk.CTkLabel(frame_medidas_tendencia, text='Escolha o conjunto de dados', font=('arial normal', 18))
+label_titulo_listbox.place(relx=0.5, rely=0.15, anchor="center")
 
+listbox_de_tabelas_medidas = CTkListbox(frame_medidas_tendencia, width=550, height=250)
+listbox_de_tabelas_medidas.place(relx=0.5, rely=0.5, anchor="center")
+
+lista_de_tabelas_bd_medidas = retornar_tables_histograma()
+for i, nome_tabela in enumerate(lista_de_tabelas_bd_medidas):
+    listbox_de_tabelas_medidas.insert(i, nome_tabela)
+
+button_gerar_histograma = ctk.CTkButton(frame_medidas_tendencia, text="Gerar histograma", 
+                                        width=235, height=45, corner_radius=15, font=("arial", 15))
+button_gerar_histograma.place(relx=0.5, rely=0.82, anchor="center")
+
+check_var_histograma = ctk.StringVar(value=True)
+checkbox_gerar_exel_histograma = ctk.CTkCheckBox(frame_medidas_tendencia, text="Gerar arquivo exel",
+                                                 variable=check_var_histograma, onvalue=True, offvalue=False)
+checkbox_gerar_exel_histograma.place(relx=0.5, rely=0.92, anchor="center")
 
 # # Fim frame medidas e tabelas
 # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -786,7 +879,8 @@ for i, nome_tabela in enumerate(lista_de_tabelas_bd):
 # Estilo de tema
 
 adicionarElementos(label_login, entry_login, label_senha, entry_senha, button_login, button_cadastrar, switchTheme, tipo=1)
-adicionarElementos(button_carregar_dados, button_digitar_dados, button_pareto, button_medidas, button_sair, switchTheme2, tipo=2)
+adicionarElementos(button_carregar_dados, button_digitar_dados, button_pareto, button_medidas, button_sair, switchTheme2, button_editar, tipo=2)
+
 
 if janela._get_appearance_mode() == "light":
     janela._set_appearance_mode("dark")
@@ -799,4 +893,3 @@ if janela._get_appearance_mode() == "light":
         element._set_appearance_mode("dark")
 
 janela.mainloop()
- 

@@ -173,6 +173,7 @@ def buscar_rol_dados(nome_table):
 
     return lista_de_dados
 
+
 def buscar_rol_dados_com_id(nome_table):
     lista_de_dados = []
     tabelas_banco = retornar_tables()

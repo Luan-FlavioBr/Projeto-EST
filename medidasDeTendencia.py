@@ -34,7 +34,6 @@ def ler_dados_quantitativos_exel(origem):
 
 def realizarMedidas(lista, origemArquivo):
     ultimaCelula = 0
-    localDoArquivo = f"{origemArquivo}/histograma.xlsx"
     workbook = openpyxl.Workbook()
     sheet = workbook.active
 
@@ -47,7 +46,7 @@ def realizarMedidas(lista, origemArquivo):
             ultimaCelula = len(lista)
             ultimaLetra = 'A'
 
-    tamanha_rol_dados = ["$A$1", f"$A${ultimaCelula}"]
+    tamanho_rol_dados = ["$A$1", f"$A${ultimaCelula}"]
 
     lista.sort()
 
@@ -66,11 +65,13 @@ def realizarMedidas(lista, origemArquivo):
     # Média, moda, mediana, 1º e 3º quartil
     titulos_medidas = ["Média","Moda", "Mediana", "1º Quartil", "3º Quartil"]
     
+    ultimaC = 0
     medidas_exc = [media, moda, medianaF, f'=_xlfn.QUARTILE.EXC($A$1:${ultimaLetra}${ultimaCelula}, 1)', f'=_xlfn.QUARTILE.EXC($A$1:${ultimaLetra}${ultimaCelula}, 3)']
     if isinstance(medidas_exc[1], int) or isinstance(medidas_exc[1], float): 
         for i in range(2, 7):
             sheet[f'{letras[indice_proxima_letra]}{i}'] = titulos_medidas[i-2]
             sheet[f'{letras[indice_proxima_letra + 1]}{i}'] = medidas_exc[i-2]
+            ultimaC = 7
     else:
         i = 2
         while i < 6+len(medidas_exc[1]):
@@ -89,6 +90,7 @@ def realizarMedidas(lista, origemArquivo):
                 sheet[f'{letras[indice_proxima_letra]}{i}'] = titulos_medidas[i-(len(medidas_exc))]
                 sheet[f'{letras[indice_proxima_letra + 1]}{i}'] = medidas_exc[i-(len(medidas_exc))] 
             i += 1
+            ultimaC = i
 
     #Cálculo dos Intervalos de Classe
     titulos_calculo_sturges = ["Valor Máximo","Valor Mínimo","Amplitude","Qtde Linhas (Sturges)","Tamanho da Classe"]
@@ -164,11 +166,11 @@ def realizarMedidas(lista, origemArquivo):
     # Fazendo as frequências
     lista_teste = list()
     inicio_freq = menor_freq
-    lista_teste.append(inicio_freq)
+    lista_teste.append(int(inicio_freq))
     while True:
         if inicio_freq < maximo:
             inicio_freq += tamanho_da_classe_ajustada
-            lista_teste.append(inicio_freq)
+            lista_teste.append(int(inicio_freq))
         else:
             break
 
@@ -181,14 +183,15 @@ def realizarMedidas(lista, origemArquivo):
 
 
     # Inserindo os intervalos frequencias e o ponto médio
+    arrumar_exel(f"{origemArquivo}/histograma.xlsx")
     celula_fi = ''
     for i in range(0, len(lista_teste)):
         celula_ponto_medio = letras[letras.index(inicio_tabela_frequencia) + 1]
         celula_fi = letras[letras.index(inicio_tabela_frequencia) + 2]
         if i < len(lista_teste) - 1:
-            sheet[f'{inicio_tabela_frequencia}{4+i}'] = f"{lista_teste[i]} |-- {lista_teste[i+1]} " # Frequencias
+            sheet[f'{inicio_tabela_frequencia}{4+i}'] = f"{int(lista_teste[i])} |-- {int(lista_teste[i+1])} " # Frequencias
             sheet[f'{celula_ponto_medio}{4+i}'] = (lista_teste[i] + lista_teste[i+1]) / 2 # Ponto Médio
-            sheet[f'{celula_fi}{4+i}'] = f'=COUNTIFS({tamanha_rol_dados[0]}:{tamanha_rol_dados[1]},">={lista_teste[i]}", {tamanha_rol_dados[0]}:{tamanha_rol_dados[1]}, "<{lista_teste[i+1]}")' # Fi
+            sheet[f'{celula_fi}{4+i}'] = f'=COUNTIFS({tamanho_rol_dados[0]}:{tamanho_rol_dados[1]},">={lista_teste[i]}", {tamanho_rol_dados[0]}:{tamanho_rol_dados[1]}, "<{lista_teste[i+1]}")' # Fi
         if i == len(lista_teste) - 1:
             ultimaCelula = len(lista_teste)+3
             sheet[f"{inicio_tabela_frequencia}{ultimaCelula}"] = "Totais"             
@@ -226,16 +229,35 @@ def realizarMedidas(lista, origemArquivo):
             sheet[f'{celula_fr_porcento_acumulada}{4+fr_p_acum}'] = f'=SUM({celula_fr_porcento}{4+fr_p_acum}, {celula_fr_porcento_acumulada}{3+fr_p_acum})'
             #sheet[f'{celula_fr_porcento_acumulada}{4+fr_p_acum}'].number_format = '0.00%'
 
-    # print((lista_teste[i] + lista_teste[i+1]) / 2)
     workbook.save(f"{origemArquivo}/histograma.xlsx")
+    localArquivo = f"{origemArquivo}/histograma.xlsx"
+    realizar_iqr_superior_inferior(localArquivo, ultimaC)
+    return localArquivo
+
+def realizar_iqr_superior_inferior(origemArquivo, ultimaC):
+    arrumar_exel(origemArquivo)
+    workbook = openpyxl.load_workbook(origemArquivo, data_only=True)
+    sheet = workbook.active
+    
+    sheet[f"C{ultimaC}"] = "IQR"
+    sheet[f"C{ultimaC+1}"] = "Corte Inferior"
+    sheet[f"C{ultimaC+2}"] = "Corte Superior"
+
+    quartil_1 = sheet[f"D{ultimaC-2}"].value
+    quartil_2 = sheet[f"D{ultimaC-1}"].value
+    sheet[f'D{ultimaC}'] = quartil_2 - quartil_1
+    iqr = sheet[f'D{ultimaC}'].value
+    sheet[f'D{ultimaC+1}'] = quartil_1 - 1.5 * iqr
+    sheet[f'D{ultimaC+2}'] = quartil_2 + 1.5 * iqr
+    workbook.save(origemArquivo)
 
 
 def arrumar_exel(origemArquivo):
     # Arrumar .xlsx para resguardar a sanidade mental do Luan!
-    data = openpyxl.load_workbook(f"{origemArquivo}/histograma.xlsx")
-    data.save(f"{origemArquivo}/histograma.xlsx")
+    data = openpyxl.load_workbook(origemArquivo)
+    data.save(origemArquivo)
     excel_app = xlwings.App(visible=False)
-    excel_book = excel_app.books.open(f"{origemArquivo}/histograma.xlsx")
+    excel_book = excel_app.books.open(origemArquivo)
     excel_book.save()
     excel_book.close()
     excel_app.quit()
@@ -243,8 +265,8 @@ def arrumar_exel(origemArquivo):
 
 # Função para fazer a table de medidas de classe nas telas
 def retornar_dados_medidas_t_central(origemArquivo):
-    arrumar_exel()
-    data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
+    arrumar_exel(origemArquivo)
+    data = openpyxl.load_workbook(origemArquivo, data_only=True)
     sheet = data.active
 
     titulos_medidas_tendencia_central = list()
@@ -259,17 +281,21 @@ def retornar_dados_medidas_t_central(origemArquivo):
         else:
             break
 
-    for f in range(2, len(titulos_medidas_tendencia_central)+1):
+    for f in range(2, len(titulos_medidas_tendencia_central)+2):
         celula_atual = sheet[f"D{f}"].internal_value
         medidas_tendencia_central.append(celula_atual)
 
-    return titulos_medidas_tendencia_central, medidas_tendencia_central
+    lista_arrumada = list()
+    for i in range(0, len(titulos_medidas_tendencia_central)):
+        lista_arrumada.append([titulos_medidas_tendencia_central[i], medidas_tendencia_central[i]])
+
+    return lista_arrumada
 
 
 # Função para fazer o gráfico
-def retornar_dados_intervalo_classe():
-    arrumar_exel()
-    data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
+def retornar_dados_intervalo_classe(origemArquivo):
+    arrumar_exel(origemArquivo)
+    data = openpyxl.load_workbook(origemArquivo, data_only=True)
     sheet = data.active
 
     titulos_intervalos_classe = list()
@@ -288,13 +314,17 @@ def retornar_dados_intervalo_classe():
         celula_atual = sheet[f"G{valor_intervalo}"].value
         valores_intervalos_classe.append(celula_atual)
 
-    return titulos_intervalos_classe, valores_intervalos_classe
+    lista_arrumada = list()
+    for i in range(0, len(titulos_intervalos_classe)):
+        lista_arrumada.append([titulos_intervalos_classe[i], valores_intervalos_classe[i]])
+
+    return lista_arrumada
 
 
 # Função para retornar a lista para fazer a table de frequencia nas telas
-def retornar_dados_tabela_freq():
-    arrumar_exel()
-    data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
+def retornar_dados_tabela_freq(origemArquivo):
+    arrumar_exel(f'{origemArquivo}/histograma.xlsx')
+    data = openpyxl.load_workbook(f'{origemArquivo}/histograma.xlsx', data_only=True)
     sheet = data.active
 
     titulos_tabela_freq = list()
@@ -381,9 +411,9 @@ def retornar_dados_tabela_freq():
 
 
 # Função para razer o table de intervalos de classe nas telas
-def dado_para_tabela():
-    arrumar_exel()
-    data = openpyxl.load_workbook('HistogramaExel/histograma.xlsx', data_only=True)
+def dado_para_tabela(origemArquivo):
+    arrumar_exel(origemArquivo)
+    data = openpyxl.load_workbook(origemArquivo, data_only=True)
     sheet = data.active
 
     lista = list()
@@ -442,22 +472,21 @@ def dado_para_tabela():
             elif isinstance(m, float) or isinstance(m, int):
                 n = round(float(n)* 100, 2)
                 n = f"{n}%"
-            lista.append([i, j, k, l, f"{m}%", n])
+            lista.append([i, j, k, round(l, 4), f"{m}%", n])
 
     return lista
 
 
-def realizar_grafico():
+def realizar_grafico(origemArquivo):
 
     # Dados fornecidos
-    todasMedidas = list(retornar_dados_tabela_freq())
+    todasMedidas = list(retornar_dados_tabela_freq(origemArquivo))
     dados = [(todasMedidas[0][0], todasMedidas[0][-2])]
 
     for i in range(0, len(todasMedidas)):
         if todasMedidas[1][i] != "Totais" and todasMedidas[4][i] != 1:
             dados.append((todasMedidas[1][i], todasMedidas[4][i]))
 
-    print(dados)
     # Extrai os rótulos e os valores da frequência
     rotulos = [item[0] for item in dados[1:]]
     valores = [item[1] for item in dados[1:]]
@@ -483,7 +512,12 @@ def realizar_grafico():
 
     max_freq = max(valores)
     plt.ylim(0, max_freq + 0.1)  # Ajuste os limites conforme necessário
-    plt.gca().set_yticklabels(['{:.0f}%'.format(val * 100) for val in plt.gca().get_yticks()])
+
+    y_vals = plt.gca().get_yticks()
+    plt.gca().set_yticks(y_vals)  # Define a localização dos rótulos do eixo y
+    plt.gca().set_yticklabels(['{:.0f}%'.format(val * 100) for val in y_vals])  # Formatação dos rótulos
+
     # Mostra o gráfico
     plt.tight_layout()  # Para evitar que os rótulos fiquem cortados
-    plt.savefig('HistogramaExel/histograma.png',format='png',dpi = 600, bbox_inches = 'tight')
+    plt.savefig(f'{origemArquivo}/histograma.png',format='png',dpi = 600, bbox_inches = 'tight')
+    return f'{origemArquivo}/histograma.png'

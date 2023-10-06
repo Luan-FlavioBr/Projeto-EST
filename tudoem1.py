@@ -364,7 +364,7 @@ def verificar_tipo_table(nome_table):
 
 
 # Frame Análise Pareto
-def gerarAnalise(gerarAnalise):
+def gerarAnalisePareto(gerarAnalise):
     from PIL import Image
 
 
@@ -460,7 +460,112 @@ def gerarAnalise(gerarAnalise):
         
         top_level.grab_set()
         top_level.protocol("WM_DELETE_WINDOW", sair_top)
+
+
+def gerarHistograma():
+    from PIL import Image
+
+
+    def sair_top():
+        top_level.destroy()
+
+
+    selecionado = listbox_de_tabelas_medidas.get()
+    if selecionado:
+
+        origem = filedialog.askdirectory(initialdir="/Desktop",
+                                            title="Abrir exel")
+
+        rol_de_dados = buscar_rol_dados(f'{selecionado}_1')
+        localArquivo = realizarMedidas(rol_de_dados, origem)
+
+        top_level = ctk.CTkToplevel(janela)
+    
+        top_level.title("Histograma")
+        top_level.geometry('%dx%d+%d+%d' % (800, 400, x, y))
+        top_level.resizable(width=False, height=False)
+
+        scroll_frame_histograma = ctk.CTkScrollableFrame(top_level)
+        scroll_frame_histograma.pack(fill="both", expand=True)
+
+        # Tabela medidas centrais
+        label_medidas_centrais = ctk.CTkLabel(scroll_frame_histograma, text="Tabela de medidas centrais", font=("calibri bold", 24))
+        label_medidas_centrais.pack()
+
+        tableColumnsMedidasCentrais = ['Titulos','Valores']
+        tableDataMedidasCentrais = retornar_dados_medidas_t_central(localArquivo)
+        tableMedidasCentrais = ttk.Treeview(master=scroll_frame_histograma, columns=tableColumnsMedidasCentrais, show="headings",
+                                            height=len(tableDataMedidasCentrais))
+        for column in tableColumnsMedidasCentrais:
+            tableMedidasCentrais.heading(column=column, text=column)
+            tableMedidasCentrais.column(column=column, width=150)
+        # Inserindo na lista de medidas centrais
+        for rowData in tableDataMedidasCentrais:
+            tableMedidasCentrais.insert(parent='', index='end', values=rowData)
         
+        tableMedidasCentrais.column(tableColumnsMedidasCentrais[1], anchor='e')
+        tableMedidasCentrais.pack()
+
+        # Tabela intervalo de classe
+        label_intervalo_classe = ctk.CTkLabel(scroll_frame_histograma, text="Tabela de intervalo de classe", font=("calibri bold", 24))
+        label_intervalo_classe.pack(pady=20)
+
+        tableColumnsIntervaloClasse = ['Titulos','Valores']
+        tableDataIntervaloClasse = retornar_dados_intervalo_classe(localArquivo)
+        tableIntervaloClasse = ttk.Treeview(master=scroll_frame_histograma, columns=tableColumnsIntervaloClasse, show="headings", height=5)
+        for column in tableColumnsIntervaloClasse:
+            tableIntervaloClasse.heading(column=column, text=column)
+            tableIntervaloClasse.column(column=column, width=250)
+        # Inserindo na lista de intervalos de classe
+        for rowData in tableDataIntervaloClasse:
+            tableIntervaloClasse.insert(parent='', index='end', values=rowData)
+
+        tableIntervaloClasse.column(tableColumnsIntervaloClasse[1], anchor='e')
+        tableIntervaloClasse.pack()
+
+        # Tabela de frequência
+        label_frequencia = ctk.CTkLabel(scroll_frame_histograma, text="Tabela de frenquencia", font=("calibri bold", 24))
+        label_frequencia.pack(pady=20)
+
+        tableColumnsFrequencia = ['Frequências','Ponto Médio', 'Fi', 'Fr', 'Fr(%)', 'Fr acum(%)']
+        tableDataFrequencia = dado_para_tabela(localArquivo)
+        tableFrequencia = ttk.Treeview(master=scroll_frame_histograma, columns=tableColumnsFrequencia, show="headings",
+                                       height=len(tableDataFrequencia)-1)
+        for column in tableColumnsFrequencia:
+            tableFrequencia.heading(column=column, text=column)
+            tableFrequencia.column(column=column, width=150)
+        for rowData in tableDataFrequencia:
+            if rowData != tableDataFrequencia[0]:
+                tableFrequencia.insert(parent='', index='end', values=rowData)
+
+        tableFrequencia.column(tableColumnsFrequencia[2], anchor='e')
+        tableFrequencia.column(tableColumnsFrequencia[3], anchor='e')
+        tableFrequencia.column(tableColumnsFrequencia[4], anchor='e')
+        tableFrequencia.column(tableColumnsFrequencia[5], anchor='e')
+        tableFrequencia.pack()
+
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure("Treeview", background="#1F6AA5", foreground="white", font=("arial", 14), borderwidth=0, relief = 'flat')
+        style.configure("Treeview.Heading", background="#1F6AA5", foreground="white", font=("Calibri bold", 17), borderwidth=0, relief = 'flat')
+        style.map("Treeview.Heading", background=[("pressed", "!focus", "#1F6AA5"), ("active", "#1F6AA5"), ("disabled", "white")])
+
+        style.configure("Treeview", background="#343638", fieldbackground="#242424", foreground="white",
+                        corner_radius=15, borderwidth=1)
+
+        label_histograma = ctk.CTkLabel(scroll_frame_histograma, text="Gráfico Histograma", font=("calibri bold", 24))
+        label_histograma.pack(pady=20)
+
+        localImagem = realizar_grafico(origem)
+        my_image = ctk.CTkImage(light_image=Image.open(localImagem),
+                                  dark_image=Image.open(localImagem),
+                                  size=(600, 300))
+
+        image_label = ctk.CTkLabel(scroll_frame_histograma, image=my_image, text="").pack()
+
+        top_level.grab_set()
+        top_level.protocol("WM_DELETE_WINDOW", sair_top)
+
 
 def abrir_top_crud(selecionado):
     def limpar_tabela_dados():
@@ -826,7 +931,7 @@ for dados in tableDataBaseDados:
 
 button_gerar_analisepareto = ctk.CTkButton(frame_analise_pareto, text="Gerar análise de pareto", 
                                            width=235, height=45, corner_radius=15, font=("arial", 15), 
-                                           command=lambda:gerarAnalise(checkbox_gerar_exel.get()))
+                                           command=lambda:gerarAnalisePareto(checkbox_gerar_exel.get()))
 button_gerar_analisepareto.place(relx=0.5, rely=0.75, anchor="center")
 
 check_var = ctk.StringVar(value=True)
@@ -851,7 +956,7 @@ for i, nome_tabela in enumerate(lista_de_tabelas_bd_medidas):
     listbox_de_tabelas_medidas.insert(i, nome_tabela)
 
 button_gerar_histograma = ctk.CTkButton(frame_medidas_tendencia, text="Gerar histograma", 
-                                        width=235, height=45, corner_radius=15, font=("arial", 15))
+                                        width=235, height=45, corner_radius=15, font=("arial", 15), command=gerarHistograma)
 button_gerar_histograma.place(relx=0.5, rely=0.82, anchor="center")
 
 check_var_histograma = ctk.StringVar(value=True)

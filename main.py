@@ -72,7 +72,7 @@ def login_clicado():
     login = entry_login.get()
     dados_login = verificar_cadastro(login)
 
-    if len(dados_login) == 0:
+    if dados_login == None or len(dados_login) == 0 :
         entry_login.configure(border_color="red")
     else:
         entry_login.configure(border_color="#565B5E")
@@ -218,6 +218,8 @@ def escolherCaminhoArquivo():
                 tela_error("Erro ao salvar conjunto de dados! Seu aquivo contém dados numéricos!")
         elif resultado == 'Nome Table Error':
             tela_error("O nome do conjunto de dados já existe!")
+        elif resultado == "Max tables reached":
+            tela_error("Número máximo de conjunto de dados alcançado, vá em Editar dados e exclua um conunto de sua preferencia!")
         else:
             tela_sucesso("Dados salvos!")
             atualizar_table_histograma()
@@ -462,7 +464,7 @@ def gerarAnalisePareto(gerarAnalise):
         top_level.protocol("WM_DELETE_WINDOW", sair_top)
 
 
-def gerarHistograma():
+def gerarHistograma(gerarExel):
     from PIL import Image
 
 
@@ -556,7 +558,7 @@ def gerarHistograma():
         label_histograma = ctk.CTkLabel(scroll_frame_histograma, text="Gráfico Histograma", font=("calibri bold", 24))
         label_histograma.pack(pady=20)
 
-        localImagem = realizar_grafico(origem)
+        localImagem = realizar_grafico(origem, gerarExel)
         my_image = ctk.CTkImage(light_image=Image.open(localImagem),
                                   dark_image=Image.open(localImagem),
                                   size=(600, 300))
@@ -610,6 +612,15 @@ def abrir_top_crud(selecionado):
             button_deletar_dado.configure(command=lambda:deletar_item(list(valor_linha)))
 
 
+    def deletarTable(nome_table):
+        drop_table(nome_table)
+        top_level_editar_dados.destroy()
+        frame_editar_dados.grab_set()
+        atualizar_listbox_editar()
+        atualizar_table_histograma()
+        atualizar_table_pareto()
+
+
     dados_retornados = buscar_rol_dados_com_id(selecionado)
 
     top_level_editar_dados = ctk.CTkToplevel(janela)
@@ -656,12 +667,17 @@ def abrir_top_crud(selecionado):
     button_deletar_dado = ctk.CTkButton(top_level_editar_dados, width=150, height=35, text="Deletar")
     button_deletar_dado.place(rely=0.75, relx=0.60, anchor="center")
 
-    top_level_editar_dados.focus_set()
+    button_deletar_table = ctk.CTkButton(top_level_editar_dados, width=150, height=35, 
+                                         text="Deletar conjunto de dados", command=lambda: deletarTable(selecionado))
+    button_deletar_table.place(rely=0.85, relx=0.50, anchor="center")
+
+    top_level_editar_dados.grab_set()
 
 
 def atualizar_listbox_editar():
     global lista_de_tabelas_bd
     lista_de_tabelas_bd = retornar_tables()
+    listbox_de_tabelas.delete(0, END)
     for i, nome_tabela in enumerate(lista_de_tabelas_bd):
         listbox_de_tabelas.insert(i, nome_tabela)
 
@@ -956,7 +972,8 @@ for i, nome_tabela in enumerate(lista_de_tabelas_bd_medidas):
     listbox_de_tabelas_medidas.insert(i, nome_tabela)
 
 button_gerar_histograma = ctk.CTkButton(frame_medidas_tendencia, text="Gerar histograma", 
-                                        width=235, height=45, corner_radius=15, font=("arial", 15), command=gerarHistograma)
+                                        width=235, height=45, corner_radius=15, font=("arial", 15),
+                                        command=lambda:gerarHistograma(checkbox_gerar_exel_histograma.get()))
 button_gerar_histograma.place(relx=0.5, rely=0.82, anchor="center")
 
 check_var_histograma = ctk.StringVar(value=True)

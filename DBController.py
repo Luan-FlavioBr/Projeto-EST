@@ -70,13 +70,21 @@ def cadastrar_usuario(login, senha):
 def verificar_cadastro(login):
     banco = sql.connect("banco_cadastro.db")
     cursor = banco.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS usuarios (login TEXT PRIMARY KEY, password TEXT)")
 
-    cursor.execute(f"SELECT * FROM usuarios WHERE login = ?", (login))
-    login_dados = cursor.fetchall()
-    banco.close()
+    if login != None:
+        try: 
+            cursor.execute("CREATE TABLE IF NOT EXISTS usuarios (login TEXT PRIMARY KEY, password TEXT)")
 
-    return login_dados
+            cursor.execute(f"SELECT * FROM usuarios WHERE login = ?", (login))
+            login_dados = cursor.fetchall()
+        except Exception as e:
+            return None
+        else:
+            return login_dados
+        finally:
+            banco.close()  
+    else:
+        return None
 
 
 def inserir_rol_dados_qualitativos(lista, nome_table):
@@ -84,8 +92,11 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
     cursor = banco.cursor()
 
     nomes_tabelas = retornar_tables()
+    print(nomes_tabelas)
     if nome_table in nomes_tabelas:
         return 'Nome Table Error'
+    if len(nomes_tabelas) >= 15:
+        return "Max tables reached"
     else:
         try:
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {nome_table} (id INTEGER PRIMARY KEY AUTOINCREMENT, dado TEXT)")
@@ -115,8 +126,9 @@ def inserir_rol_dados_quantitativos(lista, nome_table):
 
     nomes_tabelas = retornar_tables()
     if nome_table in nomes_tabelas:
-        print("Entrou no error table")
         return 'Nome Table Error'
+    if len(nomes_tabelas) >= 15:
+        return "Max tables reached"
     else:
         try:
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {nome_table} (id INTEGER PRIMARY KEY AUTOINCREMENT, dado REAL)")
@@ -224,6 +236,20 @@ def deletar_registro(lista, nome_table):
         cursor = banco.cursor()
 
         cursor.execute(f"DELETE FROM {nome_table} WHERE id = ?", (lista[0],))
+        banco.commit()
+    except Exception as e:
+        print(e)
+        banco.rollback()
+    finally:
+        banco.close()
+
+
+def drop_table(nome_table):
+    banco = sql.connect("banco_cadastro.db")
+    cursor = banco.cursor()
+
+    try:
+        cursor.execute(f"DROP TABLE {nome_table}")
         banco.commit()
     except Exception as e:
         print(e)

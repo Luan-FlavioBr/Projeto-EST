@@ -5,6 +5,7 @@ import subprocess
 import openpyxl
 import matplotlib.pyplot as plt
 from openpyxl.styles import Font, Alignment
+from openpyxl.drawing.image import Image
 import xlwings
 import os
 
@@ -180,7 +181,7 @@ def realizarMedidas(lista, origemArquivo):
         sheet[f'{letras[indice_proxima_letra+i]}3'] = padrao
         celula_atual = sheet[f'{letras[indice_proxima_letra+i]}2']
         celula_atual.alignment = Alignment(horizontal='center')
-
+    workbook.save(f"{origemArquivo}/histograma.xlsx")
 
     # Inserindo os intervalos frequencias e o ponto médio
     arrumar_exel(f"{origemArquivo}/histograma.xlsx")
@@ -477,7 +478,7 @@ def dado_para_tabela(origemArquivo):
     return lista
 
 
-def realizar_grafico(origemArquivo):
+def realizar_grafico(origemArquivo, gerarExel):
 
     # Dados fornecidos
     todasMedidas = list(retornar_dados_tabela_freq(origemArquivo))
@@ -520,4 +521,16 @@ def realizar_grafico(origemArquivo):
     # Mostra o gráfico
     plt.tight_layout()  # Para evitar que os rótulos fiquem cortados
     plt.savefig(f'{origemArquivo}/histograma.png',format='png',dpi = 600, bbox_inches = 'tight')
-    return f'{origemArquivo}/histograma.png'
+    if gerarExel:
+        workbook = openpyxl.load_workbook(f"{origemArquivo}/histograma.xlsx", data_only=True)
+        sheet = workbook.active
+        hitogramaGrafico = Image(f'{origemArquivo}/histograma.png')
+        hitogramaGrafico.width = 600
+        hitogramaGrafico.height = 350
+        sheet.add_image(hitogramaGrafico, "C15")
+        workbook.save(f'{origemArquivo}/histograma.xlsx')
+        subprocess.run(['start', '', f'{origemArquivo}/histograma.xlsx'], shell=True)
+        return f'{origemArquivo}/histograma.png'
+    else:
+        os.remove(f'{origemArquivo}/histograma.xlsx')
+        return f'{origemArquivo}/histograma.png'

@@ -394,9 +394,13 @@ def gerarAnalisePareto(gerarAnalise):
             lista_quali_temp = list(set(lista_quali))
             custo_de_ocorrencia = list()
             for i in lista_quali_temp:
-                custo = ctk.CTkInputDialog(text=f"Insira o custo da ocorrência: {i}", title="Insira o custo")
-                custo.geometry('%dx%d+%d+%d' % (350, 200, x, y))
-                custo_de_ocorrencia.append(lerfloat(custo.get_input()))
+                while True:
+                    custo = ctk.CTkInputDialog(text=f"Insira o custo da ocorrência: {i}", title="Insira o custo")
+                    custo.geometry('%dx%d+%d+%d' % (350, 200, x, y))
+                    custo_produto = lerfloat(custo.get_input())
+                    if custo_produto != None:
+                        custo_de_ocorrencia.append(custo_produto)
+                        break
             localDoArquivo = operacoesExel(origem, origem, lista_quali, 2, custo_de_ocorrencia)
         else:
             localDoArquivo = operacoesExel(origem, origem, lista_quali, 1)
@@ -677,7 +681,8 @@ def abrir_top_crud(selecionado):
 def atualizar_listbox_editar():
     global lista_de_tabelas_bd
     lista_de_tabelas_bd = retornar_tables()
-    listbox_de_tabelas.delete(0, END)
+    if len(lista_de_tabelas_bd) > 1:
+        listbox_de_tabelas.delete(0, END)
     for i, nome_tabela in enumerate(lista_de_tabelas_bd):
         listbox_de_tabelas.insert(i, nome_tabela)
 

@@ -2,6 +2,6 @@ def lerfloat(entry):
     try:
         numero = float(entry)
     except ValueError:
-        print("a")
+        return None
     else:
         return numero

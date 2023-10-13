@@ -12,7 +12,6 @@ def retornar_tables():
     for nome in tabelas:
         if nome[0] != "usuarios":
             lista.append(nome[0])
-
     banco.close()
     
     return lista
@@ -92,7 +91,6 @@ def inserir_rol_dados_qualitativos(lista, nome_table):
     cursor = banco.cursor()
 
     nomes_tabelas = retornar_tables()
-    print(nomes_tabelas)
     if nome_table in nomes_tabelas:
         return 'Nome Table Error'
     if len(nomes_tabelas) >= 15:

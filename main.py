@@ -114,6 +114,7 @@ def digitarDados():
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
     frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+    frame_binomial.place(x=700, rely=-0.5, anchor="center")
 
 
 def carregarDados():
@@ -122,6 +123,7 @@ def carregarDados():
     frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
     frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+    frame_binomial.place(x=700, rely=-0.5, anchor="center")
 
 
 def analisePareto():
@@ -130,6 +132,7 @@ def analisePareto():
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
     frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+    frame_binomial.place(x=700, rely=-0.5, anchor="center")
 
 
 def medidasTendencia():
@@ -138,7 +141,16 @@ def medidasTendencia():
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+    frame_binomial.place(x=700, rely=-0.5, anchor="center")
 
+
+def binomial():
+    frame_binomial.place(x=700, rely=0.5, anchor="center")
+    frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
+    frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
+    frame_digitar.place(x=700, rely=-0.5, anchor="center")
+    frame_carregar.place(x=700, rely=-0.5, anchor="center")
+    frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
 
 def editarDados():
     frame_editar_dados.place(x=700, rely=0.5, anchor="center")
@@ -146,6 +158,7 @@ def editarDados():
     frame_digitar.place(x=700, rely=-0.5, anchor="center")
     frame_carregar.place(x=700, rely=-0.5, anchor="center")
     frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
+    frame_binomial.place(x=700, rely=-0.5, anchor="center")
 
 
 # Funções frame carregar dados
@@ -763,6 +776,9 @@ frame_analise_pareto.place(x=700, rely=-0.5, anchor="center")
 frame_medidas_tendencia = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_medidas_tendencia.place(x=700, rely=-0.5, anchor="center")
 
+frame_binomial = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
+frame_binomial.place(x=700, rely=-0.5, anchor="center")
+
 frame_editar_dados = ctk.CTkFrame(frame_main_pricipal, width=1040, height=600, fg_color="#242424")
 frame_editar_dados.place(x=700, rely=-0.5, anchor="center")
 
@@ -798,10 +814,13 @@ button_medidas = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_r
                                 text="Medidas e tabelas", font=font_normal, command=medidasTendencia)
 button_medidas.place(y=165, x=90, anchor="center")
 
+button_binomial = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
+                                text="Cálculo Binomial", font=font_normal, command=binomial)
+button_binomial.place(y=210, x=90, anchor="center")
 
 button_editar = ctk.CTkButton(master=frame_menu, width=170, height=35, corner_radius=15, 
                                 text="Editar dados", font=font_normal, command=editarDados)
-button_editar.place(y=210, x=90, anchor="center")
+button_editar.place(y=255, x=90, anchor="center")
 
 
 switchTheme2 = ctk.CTkSwitch(master=frame_menu, text="Tema", command=mudarTemaPricipal, variable=switch_var_principal, 
@@ -988,7 +1007,13 @@ checkbox_gerar_exel_histograma.place(relx=0.5, rely=0.92, anchor="center")
 
 # # Fim frame medidas e tabelas
 # ----------------------------------------------------------------------------------------------------------------------------------------
-# Incio frame editar dados
+# Inicío frame binomial
+label_binomial = ctk.CTkLabel(frame_binomial, text='Cálculo Binomial', font=('arial normal', 24))
+label_binomial.place(relx=0.5, rely=0.05, anchor="center")
+
+# Fim frame binomial
+# ----------------------------------------------------------------------------------------------------------------------------------------
+# Inicio frame editar dados
 label_editar_dados = ctk.CTkLabel(frame_editar_dados, text='Editar dados', font=('arial normal', 24))
 label_editar_dados.place(relx=0.5, rely=0.05, anchor="center")
 

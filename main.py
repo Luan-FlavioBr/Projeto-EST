@@ -591,11 +591,14 @@ def validarBinomio(n, p):
     n = lerint(n)
     p = lerfloat(p)
     if isinstance(n, int) and (isinstance(p, float) or isinstance(p, int)):
+        button_gerar_graficobinomial.place(relx=0.50, rely=0.90, anchor="center")
         global tableDataBinomial
+        global caminhoImagem
         entry_p.configure(border_color="#565B5E")
         entry_n.configure(border_color="#565B5E")
-        listaValores, caminhoImagem = calcularBinomio(n, p)
+        listaValores, caminhoImagemLocal = calcularBinomio(n, p)
         tableDataBinomial = listaValores
+        caminhoImagem = caminhoImagemLocal
         tableBinomial.delete(*tableBinomial.get_children())
         for dados in tableDataBinomial:
             tableBinomial.insert(parent='', index="end", values=(dados))
@@ -616,7 +619,23 @@ def acumular(event):
     itensSelecionados = tableBinomial.selection()
     for i in itensSelecionados:
         total = float(tableBinomial.item(i)["values"][1]) + total
-    print(f'{total:.2%}')
+    label_totalAcum.configure(text=f"Total acumulado: {total:.2%}") 
+
+
+def abrirGraficoBinomial():
+    from PIL import Image
+    top_level_grafico_binomial = ctk.CTkToplevel(janela)
+ 
+    top_level_grafico_binomial.title("Gráfico Binomial")
+    top_level_grafico_binomial.geometry('%dx%d+%d+%d' % (1000, 600, x, y))
+    top_level_grafico_binomial.resizable(width=False, height=False)
+
+    my_image = ctk.CTkImage(light_image=Image.open(caminhoImagem),
+                                  dark_image=Image.open(caminhoImagem),
+                                  size=(1000, 600))
+
+    image_label = ctk.CTkLabel(top_level_grafico_binomial, image=my_image, text="").pack()
+    top_level_grafico_binomial.grab_set()
 
 
 def abrir_top_crud(selecionado):
@@ -1061,6 +1080,10 @@ button_gerar_binomial = ctk.CTkButton(frame_binomial, text="Gerar Cálculo Binom
                                         command=lambda:validarBinomio(entry_n.get(), entry_p.get()))
 button_gerar_binomial.place(relx=0.50, rely=0.30, anchor="center")
 
+label_totalAcum = ctk.CTkLabel(frame_binomial, text="Total acumulado: ", 
+                                    width=235, height=45, corner_radius=15, font=("arial", 15))
+label_totalAcum.place(rely=0.40, relx=0.5, anchor="center")
+
 tableColumnsBinomial = ['K',"P","P%"]
 tableDataBinomial = []
 
@@ -1073,6 +1096,12 @@ tableBinomial.place(rely=0.65, relx=0.5, anchor="center")
 
 tableBinomial.bind('<Motion>', prevent_resize)
 tableBinomial.bind('<<TreeviewSelect>>', acumular)
+
+caminhoImagem = ''
+button_gerar_graficobinomial = ctk.CTkButton(frame_binomial, text="Gerar Gráfico", 
+                                        width=235, height=45, corner_radius=15, font=("arial", 15), 
+                                        command=abrirGraficoBinomial)
+
 # Fim frame binomial
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Inicio frame editar dados

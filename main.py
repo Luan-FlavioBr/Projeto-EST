@@ -611,6 +611,14 @@ def validarBinomio(n, p):
             entry_p.configure(border_color="#565B5E")
 
 
+def acumular(event):
+    total = 0
+    itensSelecionados = tableBinomial.selection()
+    for i in itensSelecionados:
+        total = float(tableBinomial.item(i)["values"][1]) + total
+    print(f'{total:.2%}')
+
+
 def abrir_top_crud(selecionado):
     def limpar_tabela_dados():
         table_Dados.delete(*table_Dados.get_children())
@@ -1064,6 +1072,7 @@ for column in tableColumnsBinomial:
 tableBinomial.place(rely=0.65, relx=0.5, anchor="center")
 
 tableBinomial.bind('<Motion>', prevent_resize)
+tableBinomial.bind('<<TreeviewSelect>>', acumular)
 # Fim frame binomial
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Inicio frame editar dados

@@ -1,6 +1,16 @@
 def lerfloat(entry):
     try:
-        numero = float(entry)
+        numero = entry.replace(',','.')
+        numero = float(numero)
+    except ValueError:
+        return None
+    else:
+        return numero
+    
+
+def lerint(entry):
+    try:
+        numero = int(entry)
     except ValueError:
         return None
     else:

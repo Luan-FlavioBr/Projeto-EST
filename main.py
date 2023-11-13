@@ -16,6 +16,7 @@ from conversaoTxt import *
 from paretoExel import *
 from tratamentos import *
 from medidasDeTendencia import *
+from funcaoBinomial import *
 
 
 # Função da tela de cadastro
@@ -586,6 +587,30 @@ def gerarHistograma(gerarExel):
         top_level.protocol("WM_DELETE_WINDOW", sair_top)
 
 
+def validarBinomio(n, p):
+    n = lerint(n)
+    p = lerfloat(p)
+    if isinstance(n, int) and (isinstance(p, float) or isinstance(p, int)):
+        global tableDataBinomial
+        entry_p.configure(border_color="#565B5E")
+        entry_n.configure(border_color="#565B5E")
+        listaValores, caminhoImagem = calcularBinomio(n, p)
+        tableDataBinomial = listaValores
+        tableBinomial.delete(*tableBinomial.get_children())
+        for dados in tableDataBinomial:
+            tableBinomial.insert(parent='', index="end", values=(dados))
+    else:
+        if n == None:
+            entry_n.configure(border_color="red")
+        else:
+            entry_n.configure(border_color="#565B5E")
+        
+        if p == None:
+            entry_p.configure(border_color="red")
+        else:
+            entry_p.configure(border_color="#565B5E")
+
+
 def abrir_top_crud(selecionado):
     def limpar_tabela_dados():
         table_Dados.delete(*table_Dados.get_children())
@@ -1011,6 +1036,34 @@ checkbox_gerar_exel_histograma.place(relx=0.5, rely=0.92, anchor="center")
 label_binomial = ctk.CTkLabel(frame_binomial, text='Cálculo Binomial', font=('arial normal', 24))
 label_binomial.place(relx=0.5, rely=0.05, anchor="center")
 
+label_n = ctk.CTkLabel(frame_binomial, text="n", font=('arial normal', 24))
+label_n.place(relx=0.18, rely=0.20, anchor="center")
+entry_n = ctk.CTkEntry(frame_binomial, width=275, height=45, corner_radius=15,
+                        placeholder_text="Digite o número de ensaios")
+entry_n.place(relx=0.33, rely=0.20, anchor="center")
+
+label_p = ctk.CTkLabel(frame_binomial, text="p", font=('arial normal', 24))
+label_p.place(relx=0.55, rely=0.20, anchor="center")
+entry_p = ctk.CTkEntry(frame_binomial, width=275, height=45, corner_radius=15,
+                        placeholder_text="Digite o número de tentativas")
+entry_p.place(relx=0.70, rely=0.20, anchor="center")
+
+button_gerar_binomial = ctk.CTkButton(frame_binomial, text="Gerar Cálculo Binomial", 
+                                        width=235, height=45, corner_radius=15, font=("arial", 15), 
+                                        command=lambda:validarBinomio(entry_n.get(), entry_p.get()))
+button_gerar_binomial.place(relx=0.50, rely=0.30, anchor="center")
+
+tableColumnsBinomial = ['K',"P","P%"]
+tableDataBinomial = []
+
+tableBinomial = ttk.Treeview(master=frame_binomial, columns=tableColumnsBinomial, show="headings")
+for column in tableColumnsBinomial:
+    tableBinomial.heading(column=column, text=column)
+    tableBinomial.column(column=column, width=150)
+
+tableBinomial.place(rely=0.65, relx=0.5, anchor="center")
+
+tableBinomial.bind('<Motion>', prevent_resize)
 # Fim frame binomial
 # ----------------------------------------------------------------------------------------------------------------------------------------
 # Inicio frame editar dados
